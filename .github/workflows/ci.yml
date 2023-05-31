@@ -40,9 +40,11 @@ jobs:
             - name: Install NPM dependencies
               uses: pnpm/action-setup@v2
               with:
-                  run_install: |
-                      - args: [--global, roblox-ts]
+                  run_install: true
                   version: 8
+
+            - name: Install roblox-ts
+              run: pnpm install -g roblox-ts
 
             - name: Compile
               run: pnpm run build
