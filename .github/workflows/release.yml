@@ -10,15 +10,23 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v2
 
+            - name: Install Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 19
+
             - name: Install NPM dependencies
-              uses: bahmutov/npm-install@v1.7.10
+              uses: pnpm/action-setup@v2
+              with:
+                  run_install: true
+                  version: 8
 
             - name: Get NPM Version
               id: package-version
               uses: martinbeentjes/npm-get-version-action@master
 
             - name: Compile
-              run: npm run build:model
+              run: pnpm run build:model
 
             - name: Install Foreman
               uses: rojo-rbx/setup-foreman@v1
@@ -59,11 +67,19 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v2
 
+            - name: Install Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 19
+
             - name: Install NPM dependencies
-              uses: bahmutov/npm-install@v1.7.10
+              uses: pnpm/action-setup@v2
+              with:
+                  run_install: true
+                  version: 8
 
             - name: Compile
-              run: npm run build:model
+              run: pnpm run build:model
 
             - name: Install Foreman
               uses: rojo-rbx/setup-foreman@v1
