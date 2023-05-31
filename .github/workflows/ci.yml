@@ -12,11 +12,19 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v2.4.0
 
+            - name: Install Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 19
+
             - name: Install NPM dependencies
-              uses: bahmutov/npm-install@v1.7.10
+              uses: pnpm/action-setup@v2
+              with:
+                  run_install: true
+                  version: 8
 
             - name: Run ESLint
-              run: npm run eslint
+              run: pnpm run eslint
     build:
         name: Compilation
         runs-on: ubuntu-latest
@@ -24,8 +32,16 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v2.4.0
 
+            - name: Install Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 19
+
             - name: Install NPM dependencies
-              uses: bahmutov/npm-install@v1.7.10
+              uses: pnpm/action-setup@v2
+              with:
+                  run_install: true
+                  version: 8
 
             - name: Compile
-              run: npm run build
+              run: pnpm run build
