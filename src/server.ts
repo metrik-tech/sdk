@@ -1,14 +1,44 @@
 import { Options } from ".";
+import { LogService, Chat, Players, DataStoreService } from "@rbxts/services";
+
+export interface Data {
+	players: {
+		[player: string]: {
+			userId: number;
+			chatMessages: number;
+			sessionStart: number;
+		};
+	};
+}
 
 export function startServer(token: string, options: Options) {
-	const file = script.Parent?.FindFirstChild("server");
+	const data: Data = {
+		players: {},
+	} satisfies Data;
 
-	const newFolder = new Instance("Folder", game.GetService("ServerScriptService"));
-	newFolder.Name = "MetrikSDK";
+	Players.PlayerAdded.Connect((player) => {
+		// start a session
+	});
 
-	if (file) {
-		file.Parent = newFolder;
-	}
+	Players.PlayerRemoving.Connect((player) => {
+		// end a session
+	});
+
+	LogService.MessageOut.Connect((message, type) => {
+		// log a log
+	});
+
+	Chat.Chatted.Connect((message, player) => {
+		const storedPlayer = data.players[player];
+
+		if (storedPlayer) {
+			if (storedPlayer.chatMessages === undefined) {
+				storedPlayer.chatMessages = 1;
+			} else {
+				storedPlayer.chatMessages++;
+			}
+		}
+	});
 
 	print("startServer");
 }

@@ -7,22 +7,32 @@ export interface Options {
 	debug: boolean;
 }
 
-class SDK {
-	public VERSION = "0.0.1";
-
-	private token: string;
+export default class SDK {
+	private token: string | undefined;
 	private options: Options;
 
-	constructor(token: string, options: Options) {
-		print("init", token, options);
+	constructor({ token, options }: { token?: string; options: Options }) {
 		this.token = token;
 		this.options = options;
-
 		if (!RunService.IsStudio()) {
-			if (RunService.IsServer()) {
-				startServer(token, options);
-			} else if (RunService.IsClient()) {
-				startClient(options);
+			if (!token) {
+				if (RunService.IsClient()) {
+					startClient(options);
+				} else if (RunService.IsServer()) {
+					log.error("No token provided, cannot start SDK.");
+
+					return;
+				}
+			} else if (token) {
+				if (RunService.IsServer()) {
+					startServer(token, options);
+				} else if (RunService.IsClient()) {
+					log.error(
+						"Do not pass a token on the client. We do not internally use it when you construct the SDK from the client, and puts your token at risk of being stolen or leaked. Be careful!",
+					);
+
+					return;
+				}
 			}
 		} else {
 			log.warn("Running in Roblox Studio, skipping SDK initialization.");
