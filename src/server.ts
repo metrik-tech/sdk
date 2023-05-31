@@ -24,7 +24,7 @@ export function startServer(token: string, options: Options) {
 		// end a session
 	});
 
-	LogService.MessageOut.Connect((message, type) => {
+	LogService.MessageOut.Connect((message, messageType) => {
 		// log a log
 	});
 
