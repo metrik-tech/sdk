@@ -7,6 +7,8 @@
 		"build": "rbxtsc --verbose",
 		"build:model": "rbxtsc --verbose --type=model",
 		"publish:wally": "npm run build:model && wally install && wally publish",
+		"eslint": "eslint src --max-warnings 0",
+		"eslint:fix": "eslint --fix src",
 		"prepublishOnly": "npm run build",
 		"postpublish": "npm run test:update-package"
 	},
