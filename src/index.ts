@@ -1,6 +1,6 @@
 import { HttpService, RunService } from "@rbxts/services";
 import { startServer } from "./server";
-import { error, warn } from "./lib/log";
+import log from "./lib/log";
 import { startClient } from "./client";
 
 export interface Options {
@@ -25,7 +25,7 @@ class SDK {
 				startClient(options);
 			}
 		} else {
-			warn("Running in Roblox Studio, skipping SDK initialization.");
+			log.warn("Running in Roblox Studio, skipping SDK initialization.");
 		}
 	}
 }
