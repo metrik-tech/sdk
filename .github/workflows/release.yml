@@ -36,8 +36,11 @@ jobs:
             - name: Install Foreman Packages
               run: foreman install
 
-            - name: Build
+            - name: Build for RBXMX
               run: rojo build -o ./metrik-${{ steps.package-version.outputs.current-version }}.rbxmx
+
+            - name: Build for RBXM
+              run: rojo build -o ./metrik-${{ steps.package-version.outputs.current-version }}.rbxm
 
             - name: Create Release
               uses: actions/create-release@latest
