@@ -1,0 +1,13 @@
+{
+	"name": "metrik",
+	"globIgnorePaths": ["**/package.json", "**/tsconfig.json"],
+	"tree": {
+		"$path": "out",
+		"include": {
+			"$path": "include",
+			"node_modules": {
+				"$path": "node_modules/@rbxts"
+			}
+		}
+	}
+}

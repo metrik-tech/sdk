@@ -1,5 +1,13 @@
 lockfileVersion: '6.0'
 
+dependencies:
+  '@rbxts/http-queue':
+    specifier: ^1.1.6
+    version: 1.1.6
+  '@rbxts/services':
+    specifier: ^1.5.1
+    version: 1.5.1
+
 devDependencies:
   '@rbxts/compiler-types':
     specifier: 2.1.0-types.1
@@ -115,6 +123,20 @@ packages:
   /@rbxts/compiler-types@2.1.0-types.1:
     resolution: {integrity: sha512-+ztwutzuNivWsgsERiC7n5il4C5gfJUuGJUmXYRq8FwY4ye3aupRi9RocmyAHq6255sO7z+RM61AVbqx3llsLQ==}
     dev: true
+
+  /@rbxts/http-queue@1.1.6:
+    resolution: {integrity: sha512-LU7FJ4oB1i1Bl/2eb+rDQzzhfzGQfCFehScGFPSlX5HCTmbpxPQ/9CmS+cBlcFidpU0+WwPPiFR/18rQXRXvsw==}
+    dependencies:
+      '@rbxts/t': 3.1.0
+    dev: false
+
+  /@rbxts/services@1.5.1:
+    resolution: {integrity: sha512-SRtfIjga0K4YYSXRpK+eH3kcTq7ZXo9OHOt0jszaOOoEOIJloMGlyuRPqesPHyhveh2AMXAZr3TYbRMSD+u+kQ==}
+    dev: false
+
+  /@rbxts/t@3.1.0:
+    resolution: {integrity: sha512-ba/wfKYtAL6JWVhZNbhMnBZtzgGaTxttvfzxxpEcHDy0Qeaq0DF2Odo/zJ32Ajw961EMYkAMTnPXLLrLB/r+mw==}
+    dev: false
 
   /@rbxts/types@1.0.687:
     resolution: {integrity: sha512-D27oyKzFXrLjzUvToEBNYN+2OstDn/NQmqR97tC8F1svtuF9lMmDJRjjkvWE5N/S1aPy14SOLjglgM9P13rgrQ==}

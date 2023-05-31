@@ -1,0 +1,24 @@
+[package]
+name = "metrik/metrik"
+description = "SDK for https://metrik.app"
+version = "0.0.1"
+license = "AGPL-3.0-or-later"
+authors = ["cursecodes"]
+realm = "shared"
+registry = "https://github.com/upliftgames/wally-index"
+exclude = ["*"]
+include = [
+        "include",
+        "include/**/*",
+        "out",
+        "out/**/*",
+        "LICENSE",
+        "README.md",
+        "default.project.json",
+        "node_modules",
+        "node_modules/@rbxts",
+        "node_modules/@rbxts/**/*",
+        "wally.toml",
+]
+
+[dependencies]

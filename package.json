@@ -1,20 +1,32 @@
 {
-	"name": "@rbxts/metrik-sdk",
-	"version": "1.0.0",
-	"description": "",
+	"name": "@rbxts/metrik",
+	"version": "0.0.1",
+	"description": "SDK for https://metrik.app",
 	"main": "out/init.lua",
 	"scripts": {
-		"build": "rbxtsc",
-		"watch": "rbxtsc -w",
-		"prepublishOnly": "pnpm run build"
+		"build": "rbxtsc --verbose",
+		"build:model": "rbxtsc --verbose --type=model",
+		"publish:wally": "npm run build:model && wally install && wally publish",
+		"prepublishOnly": "npm run build",
+		"postpublish": "npm run test:update-package"
 	},
-	"keywords": [],
-	"author": "",
-	"license": "ISC",
+	"keywords": [
+		"roblox",
+		"metrik",
+		"typescript",
+		"roblox-ts"
+	],
+	"author": "Metrik OSS <oss@metrik.app>",
+	"license": "AGPL-3.0-or-later",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/metrik-tech/sdk.git"
+	},
 	"types": "out/index.d.ts",
 	"files": [
 		"out",
-		"!**/*.tsbuildinfo"
+		"!**/*.tsbuildinfo",
+		"README.md"
 	],
 	"publishConfig": {
 		"access": "public"
@@ -30,5 +42,9 @@
 		"eslint-plugin-roblox-ts": "^0.0.35",
 		"prettier": "^2.8.8",
 		"typescript": "^5.0.4"
+	},
+	"dependencies": {
+		"@rbxts/http-queue": "^1.1.6",
+		"@rbxts/services": "^1.5.1"
 	}
 }
