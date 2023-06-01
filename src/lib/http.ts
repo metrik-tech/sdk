@@ -71,7 +71,7 @@ export async function fetch(url: string, options: RequestOptions) {
 }
 
 export async function apiFetch(url: string, options: RequestOptions & { apiBase: string }) {
-	if (string.match(url, "^/")) {
+	if (string.match(url, "^/")[0]) {
 		url = url.sub(1);
 	}
 
