@@ -2,22 +2,27 @@ import { HttpService, RunService } from "@rbxts/services";
 import { startServer } from "./server";
 import log from "./lib/log";
 import { startClient } from "./client";
+import { $package } from "rbxts-transform-debug";
 
 export interface Options {
-	debug: boolean;
+	debug?: boolean;
+	apiBase?: string;
 }
 
 export default class SDK {
+	public VERSION = $package.version;
+
 	private token: string | undefined;
 	private options: Options;
 
-	constructor({ token, options }: { token?: string; options: Options }) {
+	constructor({ token, options }: { token?: string; options?: Options }) {
 		this.token = token;
-		this.options = options;
+		this.options = options || {};
+
 		if (!RunService.IsStudio()) {
 			if (!token) {
 				if (RunService.IsClient()) {
-					startClient(options);
+					startClient(this.options);
 				} else if (RunService.IsServer()) {
 					log.error("No token provided, cannot start SDK.");
 
@@ -25,7 +30,7 @@ export default class SDK {
 				}
 			} else if (token) {
 				if (RunService.IsServer()) {
-					startServer(token, options);
+					startServer(token, this.options);
 				} else if (RunService.IsClient()) {
 					log.error(
 						"Do not pass a token on the client. We do not internally use it when you construct the SDK from the client, and puts your token at risk of being stolen or leaked. Be careful!",
