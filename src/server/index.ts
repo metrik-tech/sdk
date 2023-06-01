@@ -2,6 +2,7 @@ import { Options } from "../";
 import { LogService, Chat, Players, DataStoreService, HttpService, LocalizationService } from "@rbxts/services";
 import { fetch, apiFetch } from "../lib/http";
 import { isBanned } from "../lib/moderation";
+import log from "../lib/log";
 
 export interface Data {
 	players: {
@@ -118,7 +119,7 @@ export function startServer(token: string, options: Options) {
 		}
 	});
 
-	Chat.Chatted.Connect((message, player) => {
+	Chat.Chatted.Connect((_, player) => {
 		const storedPlayer = data.players[player];
 
 		if (storedPlayer) {
@@ -130,5 +131,5 @@ export function startServer(token: string, options: Options) {
 		}
 	});
 
-	print("startServer");
+	log.info("Started SDK server.");
 }
