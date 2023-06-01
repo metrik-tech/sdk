@@ -16,7 +16,7 @@ const httpQueue = new HttpQueue({
 	maxSimultaneousSendOperations: 10,
 });
 
-export async function fetch(url: string, options: RequestOptions) {
+export async function fetchQueue(url: string, options: RequestOptions) {
 	const request = new HttpRequest(url, options.method, options.body, undefined, options.headers);
 
 	const response = await httpQueue.Push(request);
@@ -29,6 +29,38 @@ export async function fetch(url: string, options: RequestOptions) {
 		headers: response.Headers,
 		statusText: response.StatusMessage,
 	};
+}
+
+export async function fetch(url: string, options: RequestOptions) {
+	const response = HttpService.RequestAsync({
+		Url: url,
+		Method: options.method || "GET",
+		Headers: options.headers,
+		Body: options.body,
+	});
+
+	return {
+		status: response.StatusCode,
+		statusCode: response.StatusCode,
+		ok: response.StatusCode >= 200 && response.StatusCode < 300,
+		body: response.Body,
+		headers: response.Headers,
+		statusText: response.StatusMessage,
+	};
+}
+
+export async function apiFetch(url: string, options: RequestOptions & { apiBase: string }) {
+	if (string.match(url, "^/")) {
+		url = url.sub(1);
+	}
+
+	if (options.apiBase.sub(-1, -1) === "/") {
+		options.apiBase = options.apiBase.sub(1);
+	}
+
+	const response = await fetch(`${options.apiBase}/${url}`, options);
+
+	return response;
 }
 
 export async function httpEnabled() {

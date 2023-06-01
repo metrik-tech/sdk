@@ -11,6 +11,7 @@ export interface Options {
 
 export default class SDK {
 	public VERSION = $package.version;
+	public API_BASE = "https://api.metrik.app";
 
 	private token: string | undefined;
 	private options: Options;
@@ -18,6 +19,10 @@ export default class SDK {
 	constructor({ token, options }: { token?: string; options?: Options }) {
 		this.token = token;
 		this.options = options || {};
+
+		if (!this.options.apiBase) {
+			this.options.apiBase = this.API_BASE;
+		}
 
 		if (!RunService.IsStudio()) {
 			if (!token) {

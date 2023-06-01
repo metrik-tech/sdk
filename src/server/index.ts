@@ -1,5 +1,6 @@
-import { Options } from ".";
+import { Options } from "../";
 import { LogService, Chat, Players, DataStoreService } from "@rbxts/services";
+import { fetch } from "../lib/http";
 
 export interface Data {
 	players: {
@@ -17,7 +18,16 @@ export function startServer(token: string, options: Options) {
 	} satisfies Data;
 
 	Players.PlayerAdded.Connect((player) => {
-		// start a session
+		fetch(
+			options.apiBase ? `${options.apiBase}/ingest/session/start` : "https://api.metrik.app/ingest/session/start",
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+			},
+		);
 	});
 
 	Players.PlayerRemoving.Connect((player) => {
