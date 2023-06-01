@@ -9,6 +9,14 @@ interface RequestOptions {
 	body?: string;
 }
 
+interface RequestAsyncResponse {
+	Success: boolean;
+	StatusCode: number;
+	StatusMessage: string;
+	Headers: Record<string, string>;
+	Body: string;
+}
+
 const httpQueue = new HttpQueue({
 	retryAfter: {
 		cooldown: 30,
@@ -32,21 +40,34 @@ export async function fetchQueue(url: string, options: RequestOptions) {
 }
 
 export async function fetch(url: string, options: RequestOptions) {
-	const response = HttpService.RequestAsync({
-		Url: url,
-		Method: options.method || "GET",
-		Headers: options.headers,
-		Body: options.body,
-	});
+	const [success, response] = pcall(() =>
+		HttpService.RequestAsync({
+			Url: url,
+			Method: options.method || "GET",
+			Headers: options.headers,
+			Body: options.body,
+		}),
+	);
 
-	return {
-		status: response.StatusCode,
-		statusCode: response.StatusCode,
-		ok: response.StatusCode >= 200 && response.StatusCode < 300,
-		body: response.Body,
-		headers: response.Headers,
-		statusText: response.StatusMessage,
-	};
+	if (success) {
+		return {
+			status: response.StatusCode,
+			statusCode: response.StatusCode,
+			ok: response.StatusCode >= 200 && response.StatusCode < 300,
+			body: response.Body,
+			headers: response.Headers,
+			statusText: response.StatusMessage,
+		};
+	} else {
+		return {
+			ok: false,
+			statusText: "Request failed",
+			status: 0,
+			statusCode: 0,
+			body: {},
+			headers: {},
+		};
+	}
 }
 
 export async function apiFetch(url: string, options: RequestOptions & { apiBase: string }) {
