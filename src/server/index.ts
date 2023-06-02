@@ -96,8 +96,10 @@ export function startServer(token: string, options: Options) {
 			}
 
 			player.Kick(
-				`You have been banned from this experience.\n\nReason: ${banned.reason}\n\n${
-					banned.permanent ? "This is a permanent ban" : `Time remaining: ${banned.timeRemaining} hours`
+				`You have been banned from this experience.\nReason: ${banned.reason}\n${
+					banned.permanent
+						? "This is a permanent ban"
+						: `Time remaining: ${banned.timeRemaining} hours\n\n(c) 2023 Metrik`
 				}`,
 			);
 			return;
