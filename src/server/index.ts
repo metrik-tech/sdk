@@ -25,6 +25,13 @@ export interface Data {
 			  }
 			| undefined;
 	};
+	playerCounts: number[];
+	heartbeats: number[];
+	physicsStepTimes: number[];
+	dataReceiveKbps: number[];
+	dataSendKbps: number[];
+	ramUsage: number[];
+	serverFps: number[];
 }
 
 interface RemoteFunctionData {
@@ -35,6 +42,13 @@ interface RemoteFunctionData {
 export function startServer(token: string, options: Options) {
 	const data: Data = {
 		players: {},
+		playerCounts: [],
+		heartbeats: [],
+		physicsStepTimes: [],
+		dataReceiveKbps: [],
+		dataSendKbps: [],
+		ramUsage: [],
+		serverFps: [],
 	} satisfies Data;
 
 	const region = apiFetch("ip/location", {
@@ -79,6 +93,54 @@ export function startServer(token: string, options: Options) {
 		}),
 		apiBase: options.apiBase as string,
 	});
+
+	game.BindToClose(() => {
+		apiFetch("ingest/analytics/server/stop", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+			body: HttpService.JSONEncode({
+				jobId: game.JobId,
+			}),
+			apiBase: options.apiBase as string,
+		});
+	});
+
+	let currentPeriod = math.floor(os.time() / 60);
+	let lastPeriod = currentPeriod - 1;
+
+	if (currentPeriod > lastPeriod) {
+		lastPeriod = currentPeriod;
+
+		data.playerCounts.push(Players.GetPlayers().size());
+		data.heartbeats.push(Stats.HeartbeatTimeMs);
+		data.physicsStepTimes.push(Stats.PhysicsStepTimeMs);
+		data.dataReceiveKbps.push(Stats.DataReceiveKbps);
+		data.dataSendKbps.push(Stats.DataSendKbps);
+		data.ramUsage.push(Stats.GetTotalMemoryUsageMb());
+		data.serverFps.push(Workspace.GetRealPhysicsFPS());
+
+		apiFetch("ingest/analytics/server/update", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+			body: HttpService.JSONEncode({
+				jobId: game.JobId,
+				playerCount: Players.GetPlayers().size(),
+				heartbeat: Stats.HeartbeatTimeMs,
+				physicsStepTime: Stats.PhysicsStepTimeMs,
+				dataRecieveKbps: Stats.DataReceiveKbps,
+				dataSendKbps: Stats.DataSendKbps,
+				ramUsage: Stats.GetTotalMemoryUsageMb(),
+				serverFps: Workspace.GetRealPhysicsFPS(),
+			}),
+			apiBase: options.apiBase as string,
+		});
+	}
 
 	const remoteFunction = new Instance("RemoteFunction");
 
