@@ -3,7 +3,7 @@ import { HttpService } from "@rbxts/services";
 import { Options } from "..";
 
 export async function isBanned(userId: number, token: string, options: Options) {
-	return apiFetch("ingest/moderation/check", {
+	return apiFetch("moderation/check", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",

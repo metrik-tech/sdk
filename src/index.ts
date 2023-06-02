@@ -27,7 +27,7 @@ export default class SDK {
 		if (!RunService.IsStudio()) {
 			if (!token) {
 				if (RunService.IsClient()) {
-					startClient(this.options);
+					startClient();
 				} else if (RunService.IsServer()) {
 					log.error("No token provided, cannot start SDK.");
 

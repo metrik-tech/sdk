@@ -21,9 +21,72 @@ export function startServer(token: string, options: Options) {
 		players: {},
 	} satisfies Data;
 
+	const remoteFunction = new Instance("RemoteFunction");
+
+	remoteFunction.Name = "MetrikClientBoundary";
+	remoteFunction.Parent = game.GetService("ReplicatedStorage");
+
+	interface RemoteFunctionData {
+		device: "console" | "mobile" | "vr" | "tablet" | "desktop" | "unknown";
+		locale: string;
+	}
+
+	remoteFunction.OnServerInvoke = (player, ...args) => {
+		const data = args[0] as RemoteFunctionData;
+
+		apiFetch("ingest/analytics/session/update", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+			body: HttpService.JSONEncode({
+				userId: tostring(player.UserId),
+				device: data.device,
+				locale: data.locale,
+			}),
+			apiBase: options.apiBase as string,
+		}).andThen((response) => {
+			if (response.ok) {
+				return true;
+			} else {
+				return false;
+			}
+		});
+	};
+
 	Players.PlayerAdded.Connect(async (player) => {
+		const dataStore = DataStoreService.GetDataStore("metrik_sdk_data");
+		const [success, hasPlayed] = pcall(() => dataStore.GetAsync(`played/${tostring(player.UserId)}`));
+
+		if (!success) {
+			log.error(`Failed to get played data for ${player.Name}`);
+			return;
+		}
+
+		if (!hasPlayed) {
+			if (options.debug) {
+				log.info(`${player.Name} has not played before, setting played data`);
+			}
+
+			const [success, _] = pcall(() => dataStore.SetAsync(`played/${tostring(player.UserId)}`, true));
+
+			if (!success) {
+				log.error(`Failed to set played data for ${player.Name}`);
+				return;
+			}
+		} else {
+			if (options.debug) {
+				log.info(`${player.Name} has played before, not setting played data`);
+			}
+		}
+
 		const banned = await isBanned(player.UserId, token, options);
 		if (banned) {
+			if (options.debug) {
+				log.info(`${player.Name} is banned, kicking`);
+			}
+
 			player.Kick(
 				`You have been banned from this experience.\n\nReason: ${banned.reason}\n\n${
 					banned.permanent ? "This is a permanent ban" : `Time remaining: ${banned.timeRemaining} hours`
@@ -43,6 +106,7 @@ export function startServer(token: string, options: Options) {
 					placeId: tostring(game.PlaceId),
 					region: LocalizationService.GetCountryRegionForPlayerAsync(player),
 					premium: player.MembershipType === Enum.MembershipType.Premium,
+					newPlayer: !hasPlayed,
 					paying: false,
 					sessionStart: os.time(),
 				}),
@@ -85,10 +149,6 @@ export function startServer(token: string, options: Options) {
 		const messageTypes = [
 			{
 				messageType: Enum.MessageType.MessageOutput,
-				type: "info",
-			},
-			{
-				messageType: Enum.MessageType.MessageInfo,
 				type: "info",
 			},
 			{
