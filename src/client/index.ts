@@ -8,7 +8,6 @@ export function startClient() {
 	const locale = LocalizationService.SystemLocaleId;
 
 	remoteFunction.InvokeServer({
-		userId: Players.LocalPlayer.UserId,
 		device,
 		locale,
 	});

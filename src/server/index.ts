@@ -1,5 +1,13 @@
 import { Options } from "../";
-import { LogService, Chat, Players, DataStoreService, HttpService, LocalizationService } from "@rbxts/services";
+import {
+	LogService,
+	Chat,
+	Players,
+	DataStoreService,
+	HttpService,
+	LocalizationService,
+	VoiceChatService,
+} from "@rbxts/services";
 import { fetch, apiFetch } from "../lib/http";
 import { isBanned } from "../lib/moderation";
 import log from "../lib/log";
@@ -106,6 +114,7 @@ export function startServer(token: string, options: Options) {
 					placeId: tostring(game.PlaceId),
 					region: LocalizationService.GetCountryRegionForPlayerAsync(player),
 					premium: player.MembershipType === Enum.MembershipType.Premium,
+					voiceChatEnabled: VoiceChatService.IsVoiceEnabledForUserIdAsync(player.UserId),
 					newPlayer: !hasPlayed,
 					paying: false,
 					sessionStart: os.time(),
