@@ -7,6 +7,9 @@ import {
 	HttpService,
 	LocalizationService,
 	VoiceChatService,
+	Stats,
+	RunService,
+	Workspace,
 } from "@rbxts/services";
 import { fetch, apiFetch } from "../lib/http";
 import { isBanned } from "../lib/moderation";
@@ -24,20 +27,63 @@ export interface Data {
 	};
 }
 
+interface RemoteFunctionData {
+	device: "console" | "mobile" | "vr" | "tablet" | "desktop" | "unknown";
+	locale: string;
+}
+
 export function startServer(token: string, options: Options) {
 	const data: Data = {
 		players: {},
 	} satisfies Data;
 
+	const region = apiFetch("ip/location", {
+		method: "GET",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${token}`,
+		},
+		apiBase: options.apiBase as string,
+	}).andThen((response) => {
+		if (response.ok) {
+			const body = HttpService.JSONDecode(response.body) as {
+				region: string;
+			};
+
+			return body.region;
+		} else {
+			return "XX";
+		}
+	});
+
+	apiFetch("ingest/analytics/server/start", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${token}`,
+		},
+		body: HttpService.JSONEncode({
+			universeId: tostring(game.GameId),
+			jobId: game.JobId,
+			placeId: tostring(game.PlaceId),
+			timestamp: os.time(),
+			region: region,
+			privateServer: game.PrivateServerId !== "",
+			playerCount: Players.GetPlayers().size(),
+			heartbeat: Stats.HeartbeatTimeMs,
+			physicsStepTime: Stats.PhysicsStepTimeMs,
+			dataRecieveKbps: Stats.DataReceiveKbps,
+			dataSendKbps: Stats.DataSendKbps,
+			ramUsage: Stats.GetTotalMemoryUsageMb(),
+			serverFps: Workspace.GetRealPhysicsFPS(),
+		}),
+		apiBase: options.apiBase as string,
+	});
+
 	const remoteFunction = new Instance("RemoteFunction");
 
 	remoteFunction.Name = "MetrikClientBoundary";
 	remoteFunction.Parent = game.GetService("ReplicatedStorage");
-
-	interface RemoteFunctionData {
-		device: "console" | "mobile" | "vr" | "tablet" | "desktop" | "unknown";
-		locale: string;
-	}
 
 	remoteFunction.OnServerInvoke = (player, ...args) => {
 		const data = args[0] as RemoteFunctionData;
@@ -172,7 +218,7 @@ export function startServer(token: string, options: Options) {
 			},
 		];
 		if (messageType === Enum.MessageType.MessageOutput) {
-			apiFetch("ingest/analytics/log", {
+			apiFetch("ingest/log/new", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

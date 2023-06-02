@@ -64,7 +64,7 @@ export async function fetch(url: string, options: RequestOptions) {
 			statusText: "Request failed",
 			status: 0,
 			statusCode: 0,
-			body: {},
+			body: "",
 			headers: {},
 		};
 	}
