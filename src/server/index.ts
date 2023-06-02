@@ -14,6 +14,7 @@ import {
 import { fetch, apiFetch } from "../lib/http";
 import { isBanned } from "../lib/moderation";
 import log from "../lib/log";
+import { average, percentile } from "../lib/math";
 
 export interface Data {
 	players: {
@@ -104,6 +105,14 @@ export function startServer(token: string, options: Options) {
 			},
 			body: HttpService.JSONEncode({
 				jobId: game.JobId,
+				timestamp: os.time(),
+				playerCount: data.playerCounts,
+				heartbeat: data.heartbeats,
+				physicsStepTime: data.physicsStepTimes,
+				dataRecieveKbps: data.dataReceiveKbps,
+				dataSendKbps: data.dataSendKbps,
+				ramUsage: data.ramUsage,
+				serverFps: data.serverFps,
 			}),
 			apiBase: options.apiBase as string,
 		});
@@ -112,36 +121,40 @@ export function startServer(token: string, options: Options) {
 	let currentPeriod = math.floor(os.time() / 60);
 	let lastPeriod = currentPeriod - 1;
 
-	if (currentPeriod > lastPeriod) {
-		lastPeriod = currentPeriod;
+	RunService.Heartbeat.Connect(() => {
+		currentPeriod = math.floor(os.time() / 60);
 
-		data.playerCounts.push(Players.GetPlayers().size());
-		data.heartbeats.push(Stats.HeartbeatTimeMs);
-		data.physicsStepTimes.push(Stats.PhysicsStepTimeMs);
-		data.dataReceiveKbps.push(Stats.DataReceiveKbps);
-		data.dataSendKbps.push(Stats.DataSendKbps);
-		data.ramUsage.push(Stats.GetTotalMemoryUsageMb());
-		data.serverFps.push(Workspace.GetRealPhysicsFPS());
+		if (currentPeriod > lastPeriod) {
+			lastPeriod = currentPeriod;
 
-		apiFetch("ingest/analytics/server/update", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${token}`,
-			},
-			body: HttpService.JSONEncode({
-				jobId: game.JobId,
-				playerCount: Players.GetPlayers().size(),
-				heartbeat: Stats.HeartbeatTimeMs,
-				physicsStepTime: Stats.PhysicsStepTimeMs,
-				dataRecieveKbps: Stats.DataReceiveKbps,
-				dataSendKbps: Stats.DataSendKbps,
-				ramUsage: Stats.GetTotalMemoryUsageMb(),
-				serverFps: Workspace.GetRealPhysicsFPS(),
-			}),
-			apiBase: options.apiBase as string,
-		});
-	}
+			data.playerCounts.push(Players.GetPlayers().size());
+			data.heartbeats.push(Stats.HeartbeatTimeMs);
+			data.physicsStepTimes.push(Stats.PhysicsStepTimeMs);
+			data.dataReceiveKbps.push(Stats.DataReceiveKbps);
+			data.dataSendKbps.push(Stats.DataSendKbps);
+			data.ramUsage.push(Stats.GetTotalMemoryUsageMb());
+			data.serverFps.push(Workspace.GetRealPhysicsFPS());
+
+			apiFetch("ingest/analytics/server/update", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				body: HttpService.JSONEncode({
+					jobId: game.JobId,
+					playerCount: Players.GetPlayers().size(),
+					heartbeat: Stats.HeartbeatTimeMs,
+					physicsStepTime: Stats.PhysicsStepTimeMs,
+					dataRecieveKbps: Stats.DataReceiveKbps,
+					dataSendKbps: Stats.DataSendKbps,
+					ramUsage: Stats.GetTotalMemoryUsageMb(),
+					serverFps: Workspace.GetRealPhysicsFPS(),
+				}),
+				apiBase: options.apiBase as string,
+			});
+		}
+	});
 
 	const remoteFunction = new Instance("RemoteFunction");
 

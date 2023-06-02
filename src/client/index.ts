@@ -1,4 +1,4 @@
-import { getDevice } from "./device-type";
+import { getDevice } from "../lib/device-type";
 import { LocalizationService, Players } from "@rbxts/services";
 
 export function startClient() {
