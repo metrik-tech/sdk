@@ -6,6 +6,7 @@ import { $package } from "rbxts-transform-debug";
 
 export interface Options {
 	debug?: boolean;
+	logMetrikMessages?: boolean;
 	apiBase?: string;
 }
 
@@ -22,6 +23,10 @@ export default class SDK {
 
 		if (!this.options.apiBase) {
 			this.options.apiBase = this.API_BASE;
+		}
+
+		if (!this.options.logMetrikMessages) {
+			this.options.logMetrikMessages = false;
 		}
 
 		if (!RunService.IsStudio()) {

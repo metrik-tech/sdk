@@ -19,6 +19,7 @@ export interface Data {
 	players: {
 		[player: string]:
 			| {
+					clientInited: boolean;
 					userId: number;
 					chatMessages: number;
 					sessionStart: number;
@@ -148,27 +149,35 @@ export function startServer(token: string, options: Options) {
 	remoteFunction.Parent = game.GetService("ReplicatedStorage");
 
 	remoteFunction.OnServerInvoke = (player, ...args) => {
-		const data = args[0] as RemoteFunctionData;
+		const { device, locale } = args[0] as RemoteFunctionData;
 
-		apiFetch("ingest/analytics/session/update", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${token}`,
-			},
-			body: HttpService.JSONEncode({
-				userId: tostring(player.UserId),
-				device: data.device,
-				locale: data.locale,
-			}),
-			apiBase: options.apiBase as string,
-		}).andThen((response) => {
-			if (response.ok) {
-				return true;
-			} else {
-				return false;
+		if (!data.players[player.Name]?.clientInited) {
+			apiFetch("ingest/analytics/session/update", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				body: HttpService.JSONEncode({
+					userId: tostring(player.UserId),
+					device: device,
+					locale: locale,
+				}),
+				apiBase: options.apiBase as string,
+			}).andThen((response) => {
+				if (response.ok) {
+					return true;
+				} else {
+					return false;
+				}
+			});
+
+			data.players[player.Name]!.clientInited = true;
+		} else {
+			if (options.debug) {
+				log.info(`${player.Name} has already been initialized, not updating`);
 			}
-		});
+		}
 	};
 
 	Players.PlayerAdded.Connect(async (player) => {
@@ -176,7 +185,7 @@ export function startServer(token: string, options: Options) {
 		const [success, hasPlayed] = pcall(() => dataStore.GetAsync(`played/${tostring(player.UserId)}`));
 
 		if (!success) {
-			log.error(`Failed to get played data for ${player.Name}`);
+			if (options.debug) log.error(`Failed to get played data for ${player.Name}`);
 			return;
 		}
 
@@ -188,7 +197,7 @@ export function startServer(token: string, options: Options) {
 			const [success, _] = pcall(() => dataStore.SetAsync(`played/${tostring(player.UserId)}`, true));
 
 			if (!success) {
-				log.error(`Failed to set played data for ${player.Name}`);
+				if (options.debug) log.error(`Failed to set played data for ${player.Name}`);
 				return;
 			}
 		} else {
@@ -233,10 +242,14 @@ export function startServer(token: string, options: Options) {
 			}).andThen((response) => {
 				if (response.ok) {
 					data.players[player.Name] = {
+						clientInited: false,
 						userId: player.UserId,
 						chatMessages: 0,
 						sessionStart: os.time(),
 					};
+					if (options.debug) {
+						log.info(`${player.Name} has started a session`);
+					}
 				}
 			});
 		}
@@ -279,22 +292,29 @@ export function startServer(token: string, options: Options) {
 				type: "error",
 			},
 		];
-		if (messageType === Enum.MessageType.MessageOutput) {
-			apiFetch("ingest/log/new", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
-				},
-				body: HttpService.JSONEncode({
-					universeId: tostring(game.GameId),
-					placeId: tostring(game.PlaceId),
-					message,
-					level: messageTypes.find((mt) => mt.messageType === messageType)!.type,
-					timestamp: os.time(),
-				}),
-				apiBase: options.apiBase as string,
-			});
+		if (messageTypes.find((mt) => mt.messageType === messageType)) {
+			if (!options.logMetrikMessages && string.match(message, "^[METRIK]")[0]) {
+				return;
+			} else if (
+				(options.logMetrikMessages && string.match(message, "^[METRIK]")[0]) ||
+				!string.match(message, "^[METRIK]")[0]
+			) {
+				apiFetch("ingest/log/new", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${token}`,
+					},
+					body: HttpService.JSONEncode({
+						universeId: tostring(game.GameId),
+						placeId: tostring(game.PlaceId),
+						message,
+						level: messageTypes.find((mt) => mt.messageType === messageType)!.type,
+						timestamp: os.time(),
+					}),
+					apiBase: options.apiBase as string,
+				});
+			}
 		}
 	});
 
@@ -310,5 +330,5 @@ export function startServer(token: string, options: Options) {
 		}
 	});
 
-	log.info("Started SDK server.");
+	if (options.debug) log.info("Started SDK server.");
 }
