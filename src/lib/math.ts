@@ -1,8 +1,8 @@
-export function average(input: any[]) {
-	return input.reduce((a, b) => a + b, 0) / input.size();
+export function average(input: number[]) {
+	return input.reduce((a: number, b: number) => a + b, 0) / input.size();
 }
 
-export function percentile(arr: any[], p: number) {
+export function percentile(arr: number[], p: number) {
 	if (arr.size() === 0) return 0;
 
 	if (p <= 0) return arr[0];
@@ -14,5 +14,5 @@ export function percentile(arr: any[], p: number) {
 	const weight = index % 1;
 
 	if (upper >= arr.size()) return arr[lower];
-	return arr[lower] * (1 - weight) + arr[upper] * weight;
+	return (arr[lower] * (1 - weight) + arr[upper]) * weight;
 }
