@@ -115,7 +115,7 @@ jobs:
 
             - name: Wally Login
               run: |
-                  wally login
+                  wally login --token ${{ secrets.GITHUB_TOKEN }}
 
             - name: Publish Wally Package
               run: |
