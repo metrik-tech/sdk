@@ -1,5 +1,5 @@
 [package]
-name = "metrik/metrik"
+name = "metrik-tech/sdk"
 description = "SDK for https://metrik.app"
 version = "0.0.1"
 license = "AGPL-3.0-or-later"
