@@ -21,6 +21,9 @@ jobs:
                   run_install: true
                   version: 8
 
+            - name: Install roblox-ts
+              run: pnpm install -g roblox-ts
+
             - name: Get NPM Version
               id: package-version
               uses: martinbeentjes/npm-get-version-action@master
@@ -54,6 +57,16 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ github.token }}
 
+            - name: Upload rbxm file to release
+              uses: actions/upload-release-asset@v1
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+              with:
+                  upload_url: ${{ steps.create_release.outputs.upload_url }}
+                  asset_path: ./metrik-${{ steps.package-version.outputs.current-version }}.rbxm
+                  asset_name: metrik-${{ steps.package-version.outputs.current-version }}.rbxm
+                  asset_content_type: form
+
             - name: Upload rbxmx file to release
               uses: actions/upload-release-asset@v1
               env:
@@ -80,6 +93,9 @@ jobs:
               with:
                   run_install: true
                   version: 8
+
+            - name: Install roblox-ts
+              run: pnpm install -g roblox-ts
 
             - name: Compile
               run: pnpm run build:model
