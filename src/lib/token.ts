@@ -1,17 +1,16 @@
 import { Options } from "..";
 import { apiFetch } from "./http";
+import { Http } from "./http";
 
-export function validateToken(token: string, options: Options) {
-	const response = apiFetch("token/validate", {
+export function validateToken(http: typeof Http.prototype) {
+	const response = http.apiFetch("token/validate", {
 		method: "GET",
 		headers: {
 			"Content-Type": "application/json",
-			Authorization: `Bearer ${token}`,
 		},
-		apiBase: options.apiBase as string,
 	});
 
-	return response.andThen((response) => {
+	return response.then((response) => {
 		if (response.ok) {
 			return true;
 		} else {

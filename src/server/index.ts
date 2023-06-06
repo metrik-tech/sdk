@@ -12,9 +12,18 @@ import {
 	Workspace,
 } from "@rbxts/services";
 import { fetch, apiFetch } from "../lib/http";
-import { isBanned } from "../lib/moderation";
 import log from "../lib/log";
-import { average, percentile } from "../lib/math";
+import { Http } from "../lib/http";
+
+import {
+	onServerStart,
+	onServerClose,
+	onCronCheckModeration,
+	onServerInvoke,
+	onPlayerAdded,
+	onPlayerRemoving,
+} from "./events";
+import { validateToken } from "../lib/token";
 
 export interface Data {
 	players: {
@@ -41,7 +50,7 @@ interface RemoteFunctionData {
 	locale: string;
 }
 
-export function startServer(token: string, options: Options) {
+export async function startServer(token: string, options: Options) {
 	const data: Data = {
 		players: {},
 		playerCounts: [],
@@ -53,69 +62,19 @@ export function startServer(token: string, options: Options) {
 		serverFps: [],
 	} satisfies Data;
 
-	const region = apiFetch("ip/location", {
-		method: "GET",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bearer ${token}`,
-		},
-		apiBase: options.apiBase as string,
-	}).andThen((response) => {
-		if (response.ok) {
-			const body = HttpService.JSONDecode(response.body) as {
-				region: string;
-			};
+	const http = new Http(token, { apiBase: options.apiBase as string });
 
-			return body.region;
-		} else {
-			return "XX";
-		}
-	});
+	const validToken = await validateToken(http);
 
-	apiFetch("ingest/analytics/server/start", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bearer ${token}`,
-		},
-		body: HttpService.JSONEncode({
-			universeId: tostring(game.GameId),
-			jobId: game.JobId,
-			placeId: tostring(game.PlaceId),
-			timestamp: os.time(),
-			region: region,
-			privateServer: game.PrivateServerId !== "",
-			playerCount: Players.GetPlayers().size(),
-			heartbeat: Stats.HeartbeatTimeMs,
-			physicsStepTime: Stats.PhysicsStepTimeMs,
-			dataRecieveKbps: Stats.DataReceiveKbps,
-			dataSendKbps: Stats.DataSendKbps,
-			ramUsage: Stats.GetTotalMemoryUsageMb(),
-			serverFps: Workspace.GetRealPhysicsFPS(),
-		}),
-		apiBase: options.apiBase as string,
-	});
+	if (!validToken) {
+		log.error("Invalid token provided, exiting.");
+		return;
+	}
+
+	onServerStart(http);
 
 	game.BindToClose(() => {
-		apiFetch("ingest/analytics/server/stop", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${token}`,
-			},
-			body: HttpService.JSONEncode({
-				jobId: game.JobId,
-				timestamp: os.time(),
-				playerCount: data.playerCounts,
-				heartbeat: data.heartbeats,
-				physicsStepTime: data.physicsStepTimes,
-				dataRecieveKbps: data.dataReceiveKbps,
-				dataSendKbps: data.dataSendKbps,
-				ramUsage: data.ramUsage,
-				serverFps: data.serverFps,
-			}),
-			apiBase: options.apiBase as string,
-		});
+		onServerClose(http, data);
 	});
 
 	let currentPeriod = math.floor(os.time() / 60);
@@ -127,6 +86,8 @@ export function startServer(token: string, options: Options) {
 		if (currentPeriod > lastPeriod) {
 			lastPeriod = currentPeriod;
 
+			onCronCheckModeration(http, data);
+
 			data.playerCounts.push(Players.GetPlayers().size());
 			data.heartbeats.push(Stats.HeartbeatTimeMs);
 			data.physicsStepTimes.push(Stats.PhysicsStepTimeMs);
@@ -135,11 +96,10 @@ export function startServer(token: string, options: Options) {
 			data.ramUsage.push(Stats.GetTotalMemoryUsageMb());
 			data.serverFps.push(Workspace.GetRealPhysicsFPS());
 
-			apiFetch("ingest/analytics/server/update", {
+			http.apiFetch("ingest/analytics/server/update", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
 				},
 				body: HttpService.JSONEncode({
 					jobId: game.JobId,
@@ -151,7 +111,6 @@ export function startServer(token: string, options: Options) {
 					ramUsage: Stats.GetTotalMemoryUsageMb(),
 					serverFps: Workspace.GetRealPhysicsFPS(),
 				}),
-				apiBase: options.apiBase as string,
 			});
 		}
 	});
@@ -162,130 +121,17 @@ export function startServer(token: string, options: Options) {
 	remoteFunction.Parent = game.GetService("ReplicatedStorage");
 
 	remoteFunction.OnServerInvoke = (player, ...args) => {
-		const { device, locale } = args[0] as RemoteFunctionData;
-
-		if (!data.players[player.Name]?.clientInited) {
-			apiFetch("ingest/analytics/session/update", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
-				},
-				body: HttpService.JSONEncode({
-					userId: tostring(player.UserId),
-					device: device,
-					locale: locale,
-				}),
-				apiBase: options.apiBase as string,
-			}).andThen((response) => {
-				if (response.ok) {
-					return true;
-				} else {
-					return false;
-				}
-			});
-
-			data.players[player.Name]!.clientInited = true;
-		} else {
-			if (options.debug) {
-				log.info(`${player.Name} has already been initialized, not updating`);
-			}
-		}
+		data.players[player.Name]!.clientInited = onServerInvoke(http, data, player, args[0] as RemoteFunctionData);
 	};
 
 	Players.PlayerAdded.Connect(async (player) => {
-		const dataStore = DataStoreService.GetDataStore("metrik_sdk_data");
-		const [success, hasPlayed] = pcall(() => dataStore.GetAsync(`played/${tostring(player.UserId)}`));
-
-		if (!success) {
-			if (options.debug) log.error(`Failed to get played data for ${player.Name}`);
-			return;
-		}
-
-		if (!hasPlayed) {
-			if (options.debug) {
-				log.info(`${player.Name} has not played before, setting played data`);
-			}
-
-			const [success, _] = pcall(() => dataStore.SetAsync(`played/${tostring(player.UserId)}`, true));
-
-			if (!success) {
-				if (options.debug) log.error(`Failed to set played data for ${player.Name}`);
-				return;
-			}
-		} else {
-			if (options.debug) {
-				log.info(`${player.Name} has played before, not setting played data`);
-			}
-		}
-
-		const banned = await isBanned(player.UserId, token, options);
-		if (banned) {
-			if (options.debug) {
-				log.info(`${player.Name} is banned, kicking`);
-			}
-
-			player.Kick(
-				`You have been banned from this experience.\nReason: ${banned.reason}\n${
-					banned.permanent
-						? "This is a permanent ban"
-						: `Time remaining: ${banned.timeRemaining} hours\n\n(c) 2023 Metrik`
-				}`,
-			);
-			return;
-		} else {
-			apiFetch("ingest/analytics/session/start", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
-				},
-				body: HttpService.JSONEncode({
-					userId: tostring(player.UserId),
-					universeId: tostring(game.GameId),
-					placeId: tostring(game.PlaceId),
-					region: LocalizationService.GetCountryRegionForPlayerAsync(player),
-					premium: player.MembershipType === Enum.MembershipType.Premium,
-					voiceChatEnabled: VoiceChatService.IsVoiceEnabledForUserIdAsync(player.UserId),
-					newPlayer: !hasPlayed,
-					paying: false,
-					sessionStart: os.time(),
-				}),
-				apiBase: options.apiBase as string,
-			}).andThen((response) => {
-				if (response.ok) {
-					data.players[player.Name] = {
-						clientInited: false,
-						userId: player.UserId,
-						chatMessages: 0,
-						sessionStart: os.time(),
-					};
-					if (options.debug) {
-						log.info(`${player.Name} has started a session`);
-					}
-				}
-			});
-		}
+		await onPlayerAdded(http, data, player, options);
 	});
 
-	Players.PlayerRemoving.Connect((player) => {
-		const storedPlayer = data.players[player.Name];
+	Players.PlayerRemoving.Connect(async (player) => {
+		const success = await onPlayerRemoving(http, data, player);
 
-		if (storedPlayer) {
-			apiFetch("ingest/analytics/session/end", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
-				},
-				body: HttpService.JSONEncode({
-					userId: storedPlayer.userId,
-					sessionEnd: os.time(),
-					chatMessages: storedPlayer.chatMessages,
-				}),
-				apiBase: options.apiBase as string,
-			});
-
+		if (success) {
 			data.players[player.Name] = undefined;
 		}
 	});

@@ -3,6 +3,7 @@ import { startServer } from "./server";
 import log from "./lib/log";
 import { startClient } from "./client";
 import { $package } from "rbxts-transform-debug";
+import { validateToken } from "./lib/token";
 
 export interface Options {
 	debug?: boolean;

@@ -70,6 +70,26 @@ export async function fetch(url: string, options: RequestOptions) {
 	}
 }
 
+export class Http {
+	constructor(public token: string, public options: { apiBase: string }) {}
+
+	async fetch(url: string, options: RequestOptions) {
+		return fetch(url, options);
+	}
+
+	async apiFetch(url: string, options: RequestOptions) {
+		return apiFetch(url, {
+			...options,
+			apiBase: this.options.apiBase,
+			headers: { ...options.headers, Authorization: `Bearer ${this.token}` },
+		});
+	}
+
+	async httpEnabled() {
+		return httpEnabled();
+	}
+}
+
 export async function apiFetch(url: string, options: RequestOptions & { apiBase: string }) {
 	if (string.match(url, "^/")[0]) {
 		url = url.sub(1);
