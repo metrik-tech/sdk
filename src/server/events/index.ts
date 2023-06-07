@@ -4,3 +4,4 @@ export { onCronCheckModeration } from "./cron-moderation";
 export { onServerInvoke } from "./remote-function";
 export { onPlayerAdded } from "./player-added";
 export { onPlayerRemoving } from "./player-removing";
+export { onMessageOut } from "./message-out";

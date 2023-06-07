@@ -11,7 +11,7 @@ export function onServerStart(http: typeof Http.prototype) {
 				"Content-Type": "application/json",
 			},
 		})
-		.andThen((response) => {
+		.then((response) => {
 			if (response.ok) {
 				const body = HttpService.JSONDecode(response.body) as {
 					region: string;

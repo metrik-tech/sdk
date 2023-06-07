@@ -22,6 +22,7 @@ import {
 	onServerInvoke,
 	onPlayerAdded,
 	onPlayerRemoving,
+	onMessageOut,
 } from "./events";
 import { validateToken } from "../lib/token";
 
@@ -125,7 +126,16 @@ export async function startServer(token: string, options: Options) {
 	};
 
 	Players.PlayerAdded.Connect(async (player) => {
-		await onPlayerAdded(http, data, player, options);
+		const success = await onPlayerAdded(http, data, player, options);
+
+		if (success) {
+			data.players[player.Name] = {
+				clientInited: false,
+				userId: player.UserId,
+				chatMessages: 0,
+				sessionStart: os.time(),
+			};
+		}
 	});
 
 	Players.PlayerRemoving.Connect(async (player) => {
@@ -137,44 +147,7 @@ export async function startServer(token: string, options: Options) {
 	});
 
 	LogService.MessageOut.Connect((message, messageType) => {
-		const messageTypes = [
-			{
-				messageType: Enum.MessageType.MessageOutput,
-				type: "info",
-			},
-			{
-				messageType: Enum.MessageType.MessageWarning,
-				type: "warn",
-			},
-			{
-				messageType: Enum.MessageType.MessageError,
-				type: "error",
-			},
-		];
-		if (messageTypes.find((mt) => mt.messageType === messageType)) {
-			if (!options.logMetrikMessages && string.match(message, "^[METRIK]")[0]) {
-				return;
-			} else if (
-				(options.logMetrikMessages && string.match(message, "^[METRIK]")[0]) ||
-				!string.match(message, "^[METRIK]")[0]
-			) {
-				apiFetch("ingest/log/new", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: `Bearer ${token}`,
-					},
-					body: HttpService.JSONEncode({
-						universeId: tostring(game.GameId),
-						placeId: tostring(game.PlaceId),
-						message,
-						level: messageTypes.find((mt) => mt.messageType === messageType)!.type,
-						timestamp: os.time(),
-					}),
-					apiBase: options.apiBase as string,
-				});
-			}
-		}
+		onMessageOut(http, message, messageType, options);
 	});
 
 	Chat.Chatted.Connect((_, player) => {

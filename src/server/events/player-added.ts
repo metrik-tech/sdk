@@ -46,34 +46,33 @@ export async function onPlayerAdded(http: typeof Http.prototype, data: Data, pla
 		);
 		return;
 	} else {
-		http.apiFetch("ingest/analytics/session/start", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: HttpService.JSONEncode({
-				userId: tostring(player.UserId),
-				universeId: tostring(game.GameId),
-				placeId: tostring(game.PlaceId),
-				region: LocalizationService.GetCountryRegionForPlayerAsync(player),
-				premium: player.MembershipType === Enum.MembershipType.Premium,
-				voiceChatEnabled: VoiceChatService.IsVoiceEnabledForUserIdAsync(player.UserId),
-				newPlayer: !hasPlayed,
-				paying: false,
-				sessionStart: os.time(),
-			}),
-		}).andThen((response) => {
-			if (response.ok) {
-				data.players[player.Name] = {
-					clientInited: false,
-					userId: player.UserId,
-					chatMessages: 0,
+		return await http
+			.apiFetch("ingest/analytics/session/start", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: HttpService.JSONEncode({
+					userId: tostring(player.UserId),
+					universeId: tostring(game.GameId),
+					placeId: tostring(game.PlaceId),
+					region: LocalizationService.GetCountryRegionForPlayerAsync(player),
+					premium: player.MembershipType === Enum.MembershipType.Premium,
+					voiceChatEnabled: VoiceChatService.IsVoiceEnabledForUserIdAsync(player.UserId),
+					newPlayer: !hasPlayed,
+					paying: false,
 					sessionStart: os.time(),
-				};
-				if (options.debug) {
-					log.info(`${player.Name} has started a session`);
+				}),
+			})
+			.then((response) => {
+				if (response.ok) {
+					if (options.debug) {
+						log.info(`${player.Name} has started a session`);
+					}
+					return true;
+				} else {
+					return undefined;
 				}
-			}
-		});
+			});
 	}
 }
