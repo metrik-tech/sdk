@@ -114,7 +114,7 @@ jobs:
 
             - name: Log in to wally
               env:
-                  ALLY_AUTH: ${{ secrets.WALLY_AUTH }}
+                  WALLY_AUTH: ${{ secrets.WALLY_AUTH }}
               run: |
                   mkdir ~/.wally
                   printenv WALLY_AUTH > ~/.wally/auth.toml
