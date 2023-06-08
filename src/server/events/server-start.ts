@@ -3,26 +3,7 @@ import { Stats, Players, Workspace, HttpService } from "@rbxts/services";
 import { apiFetch } from "../../lib/http";
 import { Http } from "../../lib/http";
 
-export function onServerStart(http: typeof Http.prototype) {
-	const region = http
-		.apiFetch("ip/location", {
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-			},
-		})
-		.then((response) => {
-			if (response.ok) {
-				const body = HttpService.JSONDecode(response.body) as {
-					region: string;
-				};
-
-				return body.region;
-			} else {
-				return "XX";
-			}
-		});
-
+export function onServerStart(http: typeof Http.prototype, region: string) {
 	http.apiFetch("ingest/analytics/server/start", {
 		method: "POST",
 		headers: {

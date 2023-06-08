@@ -2,7 +2,7 @@ import { Options } from "..";
 import { apiFetch } from "./http";
 import { Http } from "./http";
 
-export function validateToken(http: typeof Http.prototype) {
+export async function validateToken(http: typeof Http.prototype) {
 	const response = http.apiFetch("token/validate", {
 		method: "GET",
 		headers: {

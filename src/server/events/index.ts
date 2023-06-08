@@ -5,3 +5,4 @@ export { onServerInvoke } from "./remote-function";
 export { onPlayerAdded } from "./player-added";
 export { onPlayerRemoving } from "./player-removing";
 export { onMessageOut } from "./message-out";
+export { onClientMessageOut } from "./client-message-out";

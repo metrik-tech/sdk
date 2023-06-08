@@ -18,11 +18,11 @@ export async function isBanned(userId: number, http: typeof Http.prototype, opti
 			if (response.ok) {
 				return undefined;
 			} else {
-				return {
-					reason: "You are banned",
-					timestamp: os.time(),
-					permanent: false,
-					timeRemaining: 24, // hours
+				return HttpService.JSONDecode(response.body) as {
+					reason: string;
+					timestamp: number;
+					permantent: boolean;
+					timeRemaining?: number;
 				};
 			}
 		});
