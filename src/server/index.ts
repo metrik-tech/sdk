@@ -14,7 +14,6 @@ import {
 import { fetch, apiFetch } from "../lib/http";
 import log from "../lib/log";
 import { Http } from "../lib/http";
-import Icon from "@rbxts/topbar-plus";
 
 import {
 	onServerStart,
