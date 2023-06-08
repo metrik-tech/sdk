@@ -21,7 +21,7 @@ export async function isBanned(userId: number, http: typeof Http.prototype, opti
 				return HttpService.JSONDecode(response.body) as {
 					reason: string;
 					timestamp: number;
-					permantent: boolean;
+					permanent: boolean;
 					timeRemaining?: number;
 				};
 			}
