@@ -1,4 +1,4 @@
-import { Options } from "..";
+import { IOptions } from "..";
 import { apiFetch } from "./http";
 import { Http } from "./http";
 

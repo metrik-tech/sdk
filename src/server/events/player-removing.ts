@@ -1,9 +1,9 @@
-import { Data } from "..";
+import { IData } from "..";
 import { Http } from "../../lib/http";
 import { HttpService } from "@rbxts/services";
 import log from "../../lib/log";
 
-export async function onPlayerRemoving(http: typeof Http.prototype, data: Data, player: Player) {
+export async function onPlayerRemoving(http: typeof Http.prototype, data: IData, player: Player) {
 	const storedPlayer = data.players[player.Name];
 
 	if (storedPlayer) {

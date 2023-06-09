@@ -1,8 +1,8 @@
 import { Players, HttpService } from "@rbxts/services";
 import { Http } from "../../lib/http";
-import { Data } from "..";
+import { IData } from "..";
 
-export function onCronCheckModeration(http: typeof Http.prototype, data: Data) {
+export function onCronCheckModeration(http: typeof Http.prototype, data: IData) {
 	http.apiFetch(`moderation/check/bulk?users=${Players.GetPlayers().join(",")}`, {
 		method: "GET",
 	}).then((response) => {

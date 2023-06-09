@@ -1,11 +1,11 @@
-import { Data } from "..";
-import { Options } from "../..";
+import { IData } from "..";
+import { IOptions } from "../..";
 import { Http } from "../../lib/http";
 import { DataStoreService, HttpService, LocalizationService, VoiceChatService } from "@rbxts/services";
 import log from "../../lib/log";
 import { isBanned } from "../../lib/moderation";
 
-export async function onPlayerAdded(http: typeof Http.prototype, data: Data, player: Player, options: Options) {
+export async function onPlayerAdded(http: typeof Http.prototype, data: IData, player: Player, options: IOptions) {
 	const dataStore = DataStoreService.GetDataStore("metrik_sdk_data");
 	const [success, hasPlayed] = pcall(() => dataStore.GetAsync(`played/${tostring(player.UserId)}`));
 

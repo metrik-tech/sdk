@@ -1,9 +1,9 @@
 import { apiFetch } from "./http";
 import { HttpService } from "@rbxts/services";
-import { Options } from "..";
+import { IOptions } from "..";
 import { Http } from "./http";
 
-export async function isBanned(userId: number, http: typeof Http.prototype, options: Options) {
+export async function isBanned(userId: number, http: typeof Http.prototype, options: IOptions) {
 	return http
 		.apiFetch("moderation/check", {
 			method: "POST",

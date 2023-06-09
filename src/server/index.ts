@@ -1,4 +1,4 @@
-import { Options } from "../";
+import { IOptions } from "../";
 import {
 	LogService,
 	Chat,
@@ -7,7 +7,7 @@ import {
 	HttpService,
 	LocalizationService,
 	VoiceChatService,
-	Stats,
+	Stats as IStats,
 	RunService,
 	Workspace,
 } from "@rbxts/services";
@@ -27,50 +27,67 @@ import {
 } from "./events";
 import { validateToken } from "../lib/token";
 
-export interface Broadcast {
+export interface IBroadcast {
 	message: string;
 	type: "chat" | "topbar" | "toast";
 	duration: number;
 }
 
-export interface Data {
-	players: {
-		[player: string]:
-			| {
-					clientInited: boolean;
-					userId: number;
-					chatMessages: number;
-					sessionStart: number;
-			  }
-			| undefined;
-	};
-	playerCounts: number[];
-	heartbeats: number[];
-	physicsStepTimes: number[];
-	dataReceiveKbps: number[];
-	dataSendKbps: number[];
-	ramUsage: number[];
-	serverFps: number[];
+export interface IStatsItem {
+	data: number;
+	timestamp: number;
+}
+
+export interface IPlayers {
+	[player: string]: IPlayer | undefined;
+}
+
+export interface IPlayer {
+	clientInited: boolean;
+	userId: number;
+	chatMessages: number;
+	sessionStart: number;
+}
+
+interface IStats {
+	timestamp: number;
+	playerCounts: number;
+	heartbeats: number;
+	instanceCounts: number;
+	primitivesCounts: number;
+	contactsCounts: number;
+	movingPrimitivesCounts: number;
+	physicsStepTimes: number;
+	physicsReceiveKbps: number;
+	physicsSendKbps: number;
+	dataReceiveKbps: number;
+	dataSendKbps: number;
+	ramUsage: number;
+	serverFps: number;
+}
+
+export interface IData {
+	players:
+		| {
+				[player: string]: IPlayer | undefined;
+		  }
+		| undefined;
+	stats: IStats[];
 	region: string;
 }
 
-interface RemoteFunctionData {
+interface IRemoteFunctionData {
 	device: "console" | "mobile" | "vr" | "tablet" | "desktop" | "unknown";
 	locale: string;
 }
 
-export async function startServer(token: string, options: Options) {
-	const data: Data = {
+export async function startServer(token: string, options: IOptions) {
+	const data = {
 		players: {},
-		playerCounts: [],
-		heartbeats: [],
-		physicsStepTimes: [],
-		dataReceiveKbps: [],
-		dataSendKbps: [],
-		ramUsage: [],
-		serverFps: [],
+		stats: [],
+
 		region: "XX",
-	} satisfies Data;
+	} satisfies IData;
 
 	const http = new Http(token, { apiBase: options.apiBase as string });
 
@@ -119,13 +136,24 @@ export async function startServer(token: string, options: Options) {
 
 			onCronCheckModeration(http, data);
 
-			data.playerCounts.push(Players.GetPlayers().size());
-			data.heartbeats.push(Stats.HeartbeatTimeMs);
-			data.physicsStepTimes.push(Stats.PhysicsStepTimeMs);
-			data.dataReceiveKbps.push(Stats.DataReceiveKbps);
-			data.dataSendKbps.push(Stats.DataSendKbps);
-			data.ramUsage.push(Stats.GetTotalMemoryUsageMb());
-			data.serverFps.push(Workspace.GetRealPhysicsFPS());
+			const stats = {
+				timestamp: os.time(),
+				playerCounts: Players.GetPlayers().size(),
+				contactsCounts: IStats.ContactsCount,
+				instanceCounts: IStats.InstanceCount,
+				primitivesCounts: IStats.PrimitivesCount,
+				movingPrimitivesCounts: IStats.MovingPrimitivesCount,
+				heartbeats: IStats.HeartbeatTimeMs,
+				physicsStepTimes: IStats.PhysicsStepTimeMs,
+				physicsReceiveKbps: IStats.PhysicsReceiveKbps,
+				physicsSendKbps: IStats.PhysicsSendKbps,
+				dataReceiveKbps: IStats.DataReceiveKbps,
+				dataSendKbps: IStats.DataSendKbps,
+				ramUsage: IStats.GetTotalMemoryUsageMb(),
+				serverFps: Workspace.GetRealPhysicsFPS(),
+			};
+
+			data.stats.push(stats as never);
 
 			http.apiFetch("ingest/analytics/server/update", {
 				method: "POST",
@@ -134,13 +162,8 @@ export async function startServer(token: string, options: Options) {
 				},
 				body: HttpService.JSONEncode({
 					jobId: game.JobId,
-					playerCount: Players.GetPlayers().size(),
-					heartbeat: Stats.HeartbeatTimeMs,
-					physicsStepTime: Stats.PhysicsStepTimeMs,
-					dataRecieveKbps: Stats.DataReceiveKbps,
-					dataSendKbps: Stats.DataSendKbps,
-					ramUsage: Stats.GetTotalMemoryUsageMb(),
-					serverFps: Workspace.GetRealPhysicsFPS(),
+					timestamp: os.time(),
+					stats,
 				}),
 			});
 		}
@@ -152,7 +175,12 @@ export async function startServer(token: string, options: Options) {
 	clientInit.Parent = game.GetService("ReplicatedStorage");
 
 	clientInit.OnServerInvoke = (player, ...args) => {
-		data.players[player.Name]!.clientInited = onServerInvoke(http, data, player, args[0] as RemoteFunctionData);
+		(data.players as IPlayers)[player.Name]!.clientInited = onServerInvoke(
+			http,
+			data,
+			player,
+			args[0] as IRemoteFunctionData,
+		);
 	};
 
 	const clientMessageOut = new Instance("RemoteFunction");
@@ -168,12 +196,15 @@ export async function startServer(token: string, options: Options) {
 		const success = await onPlayerAdded(http, data, player, options);
 
 		if (success) {
-			data.players[player.Name] = {
+			(data.players as IPlayers)[player.Name] = {
 				clientInited: false,
 				userId: player.UserId,
 				chatMessages: 0,
 				sessionStart: os.time(),
 			};
+		} else {
+			log.error("Failed to add player to Metrik, kicking player.");
+			player.Kick("Failed to add player to Metrik.");
 		}
 	});
 
@@ -181,7 +212,7 @@ export async function startServer(token: string, options: Options) {
 		const success = await onPlayerRemoving(http, data, player);
 
 		if (success) {
-			data.players[player.Name] = undefined;
+			(data.players as IPlayers)[player.Name] = undefined;
 		}
 	});
 
@@ -190,7 +221,7 @@ export async function startServer(token: string, options: Options) {
 	});
 
 	Chat.Chatted.Connect((_, player) => {
-		const storedPlayer = data.players[player];
+		const storedPlayer = (data.players as IPlayers)[player];
 
 		if (storedPlayer) {
 			if (storedPlayer.chatMessages === undefined) {

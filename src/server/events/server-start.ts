@@ -1,4 +1,4 @@
-import { Options } from "../..";
+import { IOptions } from "../..";
 import { Stats, Players, Workspace, HttpService } from "@rbxts/services";
 import { apiFetch } from "../../lib/http";
 import { Http } from "../../lib/http";
@@ -15,14 +15,28 @@ export function onServerStart(http: typeof Http.prototype, region: string) {
 			placeId: tostring(game.PlaceId),
 			timestamp: os.time(),
 			region: region,
-			privateServer: game.PrivateServerId !== "",
-			playerCount: Players.GetPlayers().size(),
-			heartbeat: Stats.HeartbeatTimeMs,
-			physicsStepTime: Stats.PhysicsStepTimeMs,
-			dataRecieveKbps: Stats.DataReceiveKbps,
-			dataSendKbps: Stats.DataSendKbps,
-			ramUsage: Stats.GetTotalMemoryUsageMb(),
-			serverFps: Workspace.GetRealPhysicsFPS(),
+			version: game.PlaceVersion,
+			serverType:
+				game.PrivateServerId !== "" && game.PrivateServerOwnerId !== 0
+					? "private"
+					: game.PrivateServerId !== "" && game.PrivateServerOwnerId === 0
+					? "reserved"
+					: "public",
+			initialStats: {
+				playerCount: Players.GetPlayers().size(),
+				heartbeat: Stats.HeartbeatTimeMs,
+				contactsCount: Stats.ContactsCount,
+				instanceCount: Stats.InstanceCount,
+				primitivesCount: Stats.PrimitivesCount,
+				movingPrimitivesCount: Stats.MovingPrimitivesCount,
+				physicsStepTime: Stats.PhysicsStepTimeMs,
+				physicsReceiveKbps: Stats.PhysicsReceiveKbps,
+				physicsSendKbps: Stats.PhysicsSendKbps,
+				dataRecieveKbps: Stats.DataReceiveKbps,
+				dataSendKbps: Stats.DataSendKbps,
+				ramUsage: Stats.GetTotalMemoryUsageMb(),
+				serverFps: Workspace.GetRealPhysicsFPS(),
+			},
 		}),
 	});
 }

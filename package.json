@@ -1,6 +1,6 @@
 {
 	"name": "@rbxts/metrik",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "SDK for https://metrik.app",
 	"main": "out/init.lua",
 	"scripts": {
@@ -9,8 +9,7 @@
 		"publish:wally": "npm run build:model && wally install && wally publish",
 		"eslint": "eslint src --max-warnings 0",
 		"eslint:fix": "eslint --fix src",
-		"prepublishOnly": "npm run build",
-		"postpublish": "npm run test:update-package"
+		"prepublishOnly": "npm run build"
 	},
 	"keywords": [
 		"roblox",
@@ -48,6 +47,7 @@
 	"dependencies": {
 		"@rbxts/http-queue": "^1.1.6",
 		"@rbxts/services": "^1.5.1",
+		"@rbxts/topbar-plus": "^2.0.9",
 		"rbxts-transform-debug": "github:roblox-aurora/rbxts-transform-debug#v2.1.0"
 	}
 }

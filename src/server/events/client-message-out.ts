@@ -1,15 +1,15 @@
 import { Http } from "../../lib/http";
-import { Options } from "../..";
+import { IOptions } from "../..";
 import { HttpService, LocalizationService } from "@rbxts/services";
-import { Data } from "..";
+import { IData } from "..";
 
 export async function onClientMessageOut(
 	http: typeof Http.prototype,
 	player: Player,
 	message: string,
 	messageType: Enum.MessageType,
-	data: Data,
-	options: Options,
+	data: IData,
+	options: IOptions,
 ) {
 	const messageTypes = [
 		{
@@ -32,7 +32,7 @@ export async function onClientMessageOut(
 			(options.logMetrikMessages && string.match(message, "^[METRIK SDK]")[0]) ||
 			!string.match(message, "^[METRIK SDK]")[0]
 		) {
-			http.apiFetch("ingest/log/client/new", {
+			http.apiFetch("ingest/logs/new", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -40,6 +40,7 @@ export async function onClientMessageOut(
 				body: HttpService.JSONEncode({
 					universeId: tostring(game.GameId),
 					placeId: tostring(game.PlaceId),
+					env: "client",
 					jobId: game.JobId,
 					region: LocalizationService.GetCountryRegionForPlayerAsync(player),
 					message,

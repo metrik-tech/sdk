@@ -5,7 +5,7 @@ import { startClient } from "./client";
 import { $package } from "rbxts-transform-debug";
 import { validateToken } from "./lib/token";
 
-export interface Options {
+export interface IOptions {
 	debug?: boolean;
 	logMetrikMessages?: boolean;
 	apiBase?: string;
@@ -16,9 +16,9 @@ export default class SDK {
 	public API_BASE = "https://api.metrik.app";
 
 	private token: string | undefined;
-	private options: Options;
+	private options: IOptions;
 
-	constructor({ token, options }: { token?: string; options?: Options }) {
+	constructor({ token, options }: { token?: string; options?: IOptions }) {
 		this.token = token;
 		this.options = options || {};
 
