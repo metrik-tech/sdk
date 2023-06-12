@@ -1,6 +1,6 @@
 import { Players, HttpService } from "@rbxts/services";
 import { Http } from "../../lib/http";
-import { IData } from "..";
+import { IData, IPlayers } from "..";
 
 export function onCronCheckModeration(http: typeof Http.prototype, data: IData) {
 	http.apiFetch(`moderation/check/bulk?users=${Players.GetPlayers().join(",")}`, {
@@ -23,7 +23,7 @@ export function onCronCheckModeration(http: typeof Http.prototype, data: IData) 
 			body.banned.forEach((user) => {
 				const player = Players.GetPlayerByUserId(user.userId);
 				if (player) {
-					delete data.players[player.Name];
+					delete (data.players as IPlayers)[player.Name];
 					player.Kick(
 						`You have been banned from this experience.\nReason: ${user.reason}\n${
 							user.permanent

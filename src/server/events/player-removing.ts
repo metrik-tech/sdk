@@ -1,10 +1,10 @@
-import { IData } from "..";
+import { IData, IPlayers } from "..";
 import { Http } from "../../lib/http";
 import { HttpService } from "@rbxts/services";
 import log from "../../lib/log";
 
 export async function onPlayerRemoving(http: typeof Http.prototype, data: IData, player: Player) {
-	const storedPlayer = data.players[player.Name];
+	const storedPlayer = (data.players as IPlayers)[player.Name];
 
 	if (storedPlayer) {
 		const res = await http
