@@ -1,36 +1,62 @@
 import { IData, IPlayers } from "..";
+import { IOptions } from "../..";
 import { Http } from "../../lib/http";
-import { HttpService } from "@rbxts/services";
+import { HttpService, LocalizationService, VoiceChatService } from "@rbxts/services";
+import log from "../../lib/log";
 
 interface IRemoteFunctionData {
 	device: "console" | "mobile" | "vr" | "tablet" | "desktop" | "unknown";
 	locale: string;
 }
 
-export function onServerInvoke(http: typeof Http.prototype, data: IData, player: Player, details: IRemoteFunctionData) {
+export async function onServerInvoke(
+	http: typeof Http.prototype,
+	data: IData,
+	player: Player,
+	details: IRemoteFunctionData,
+	options: IOptions,
+): Promise<LuaTuple<boolean[]>> {
 	const { device, locale } = details;
+	const dataPlayer = (data.players as IPlayers)[player.Name];
 
-	if (!(data.players as IPlayers)[player.Name]?.clientInited) {
-		http.apiFetch("ingest/analytics/session/update", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: HttpService.JSONEncode({
-				userId: tostring(player.UserId),
-				device: device,
-				locale: locale,
-			}),
-		}).then((response) => {
-			if (response.ok) {
-				return true;
-			} else {
-				return false;
-			}
-		});
+	if (!dataPlayer) {
+		log.error(`Failed to get player data for ${player.Name}`);
 
-		return true;
+		return $tuple(false, false);
+	}
+
+	if (!dataPlayer.clientInited) {
+		return await http
+			.apiFetch("ingest/analytics/session/start", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: HttpService.JSONEncode({
+					userId: tostring(player.UserId),
+					universeId: tostring(game.GameId),
+					placeId: tostring(game.PlaceId),
+					region: LocalizationService.GetCountryRegionForPlayerAsync(player),
+					premium: player.MembershipType === Enum.MembershipType.Premium,
+					voiceChatEnabled: VoiceChatService.IsVoiceEnabledForUserIdAsync(player.UserId),
+					newPlayer: !dataPlayer.hasPlayed,
+					device: device,
+					locale: locale,
+					paying: false,
+					sessionStart: os.time(),
+				}),
+			})
+			.then((response) => {
+				if (response.ok) {
+					if (options.debug) {
+						log.info(`${player.Name} has started a session`);
+					}
+					return $tuple(true, true);
+				} else {
+					return $tuple(false, false);
+				}
+			});
 	} else {
-		return false;
+		return $tuple(false, true);
 	}
 }

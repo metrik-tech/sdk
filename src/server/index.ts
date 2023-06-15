@@ -43,6 +43,7 @@ export interface IPlayers {
 }
 
 export interface IPlayer {
+	hasPlayed: boolean;
 	clientInited: boolean;
 	userId: number;
 	chatMessages: number;
@@ -174,13 +175,21 @@ export async function startServer(token: string, options: IOptions) {
 	clientInit.Name = "MetrikClientBoundary";
 	clientInit.Parent = game.GetService("ReplicatedStorage");
 
-	clientInit.OnServerInvoke = (player, ...args) => {
-		(data.players as IPlayers)[player.Name]!.clientInited = onServerInvoke(
+	clientInit.OnServerInvoke = async (player, ...args) => {
+		const [success, clientInited] = await onServerInvoke(
 			http,
 			data,
 			player,
 			args[0] as IRemoteFunctionData,
+			options,
 		);
+
+		if (!success) {
+			log.error("Failed to add player to Metrik, kicking player.");
+			player.Kick("Failed to add player to Metrik.");
+		}
+
+		(data.players as IPlayers)[player.Name]!.clientInited = clientInited;
 	};
 
 	const clientMessageOut = new Instance("RemoteFunction");
@@ -193,10 +202,11 @@ export async function startServer(token: string, options: IOptions) {
 	};
 
 	Players.PlayerAdded.Connect(async (player) => {
-		const success = await onPlayerAdded(http, data, player, options);
+		const [success, hasPlayed] = await onPlayerAdded(http, player, options);
 
 		if (success) {
 			(data.players as IPlayers)[player.Name] = {
+				hasPlayed,
 				clientInited: false,
 				userId: player.UserId,
 				chatMessages: 0,

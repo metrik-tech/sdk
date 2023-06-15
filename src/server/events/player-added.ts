@@ -5,13 +5,19 @@ import { DataStoreService, HttpService, LocalizationService, VoiceChatService } 
 import log from "../../lib/log";
 import { isBanned } from "../../lib/moderation";
 
-export async function onPlayerAdded(http: typeof Http.prototype, data: IData, player: Player, options: IOptions) {
+export async function onPlayerAdded(
+	http: typeof Http.prototype,
+	player: Player,
+	options: IOptions,
+): Promise<LuaTuple<boolean[]>> {
 	const dataStore = DataStoreService.GetDataStore("metrik_sdk_data");
-	const [success, hasPlayed] = pcall(() => dataStore.GetAsync(`played/${tostring(player.UserId)}`));
+	const [success, hasPlayed] = pcall(() => dataStore.GetAsync(`played/${tostring(player.UserId)}`)) as LuaTuple<
+		boolean[]
+	>;
 
 	if (!success) {
 		if (options.debug) log.error(`Failed to get played data for ${player.Name}`);
-		return;
+		return $tuple(false, false);
 	}
 
 	if (!hasPlayed) {
@@ -23,7 +29,7 @@ export async function onPlayerAdded(http: typeof Http.prototype, data: IData, pl
 
 		if (!success) {
 			if (options.debug) log.error(`Failed to set played data for ${player.Name}`);
-			return;
+			return $tuple(false, false);
 		}
 	} else {
 		if (options.debug) {
@@ -44,35 +50,8 @@ export async function onPlayerAdded(http: typeof Http.prototype, data: IData, pl
 					: `Time remaining: ${banned.timeRemaining} hours\n\n(c) 2023 Metrik`
 			}`,
 		);
-		return;
+		return $tuple(false, hasPlayed);
 	} else {
-		return await http
-			.apiFetch("ingest/analytics/session/start", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: HttpService.JSONEncode({
-					userId: tostring(player.UserId),
-					universeId: tostring(game.GameId),
-					placeId: tostring(game.PlaceId),
-					region: LocalizationService.GetCountryRegionForPlayerAsync(player),
-					premium: player.MembershipType === Enum.MembershipType.Premium,
-					voiceChatEnabled: VoiceChatService.IsVoiceEnabledForUserIdAsync(player.UserId),
-					newPlayer: !hasPlayed,
-					paying: false,
-					sessionStart: os.time(),
-				}),
-			})
-			.then((response) => {
-				if (response.ok) {
-					if (options.debug) {
-						log.info(`${player.Name} has started a session`);
-					}
-					return true;
-				} else {
-					return undefined;
-				}
-			});
+		return $tuple(true, hasPlayed);
 	}
 }
