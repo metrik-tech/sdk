@@ -1,4 +1,4 @@
-# Metrik SDK `alpha`
+# Metrik SDK **Alpha**
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/metrik-tech/sdk?label=latest%20release)](https://github.com/metrik-tech/sdk/releases/latest) [![GitHub issues](https://img.shields.io/github/issues/metrik-tech/sdk)](https://github.com/metrik-tech/sdk/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc) [![GitHub pull requests](https://img.shields.io/github/issues-pr/metrik-tech/sdk)](https://github.com/metrik-tech/sdk/pulls?q=is%3Apr+is%3Aopen+sort%3Aupdated-desc) [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/metrik-tech/sdk/ci.yml)](https://github.com/metrik-tech/sdk/actions/workflows/ci.yml)
 
