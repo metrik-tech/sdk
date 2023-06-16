@@ -97,7 +97,7 @@ new Metrik();
 
 ```lua
 -- any client script (file.client.lua)
--- or a LocalScript (preferably in StarterPlayerScripts)
+-- or a LocalScript (preferably in ReplicatedFirst)
 
 local Metrik = require(path.to.Metrik)
 
