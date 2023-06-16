@@ -3,6 +3,6 @@
 registry = "test"
 
 [[package]]
-name = "metrik/metrik"
-version = "0.0.1"
+name = "metrik-tech/sdk"
+version = "0.0.3"
 dependencies = []

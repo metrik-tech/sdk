@@ -3,6 +3,8 @@ import { IOptions } from "../..";
 import { HttpService, LocalizationService } from "@rbxts/services";
 import { IData } from "..";
 
+// !! THIS IS NON-FUNCTIONAL !!
+
 export async function onClientMessageOut(
 	http: typeof Http.prototype,
 	player: Player,

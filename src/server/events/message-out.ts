@@ -41,7 +41,6 @@ export function onMessageOut(
 					placeId: tostring(game.PlaceId),
 					jobId: game.JobId,
 					env: "server",
-					region: data.region,
 					message,
 					level: messageTypes.find((mt) => mt.messageType === messageType)!.type,
 					timestamp: os.time(),

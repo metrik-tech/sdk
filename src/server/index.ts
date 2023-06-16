@@ -74,7 +74,6 @@ export interface IData {
 		  }
 		| undefined;
 	stats: IStats[];
-	region: string;
 }
 
 interface IRemoteFunctionData {
@@ -86,8 +85,6 @@ export async function startServer(token: string, options: IOptions) {
 	const data = {
 		players: {},
 		stats: [],
-
-		region: "XX",
 	} satisfies IData;
 
 	const http = new Http(token, { apiBase: options.apiBase as string });
@@ -99,28 +96,7 @@ export async function startServer(token: string, options: IOptions) {
 		return;
 	}
 
-	const region = await http
-		.apiFetch("ip/location", {
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-			},
-		})
-		.then((response) => {
-			if (response.ok) {
-				const body = HttpService.JSONDecode(response.body) as {
-					region: string;
-				};
-
-				data.region = body.region;
-
-				return body.region;
-			} else {
-				return "XX";
-			}
-		});
-
-	onServerStart(http, region);
+	onServerStart(http);
 
 	game.BindToClose(() => {
 		onServerClose(http, data);

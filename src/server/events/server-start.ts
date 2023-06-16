@@ -3,7 +3,7 @@ import { Stats, Players, Workspace, HttpService } from "@rbxts/services";
 import { apiFetch } from "../../lib/http";
 import { Http } from "../../lib/http";
 
-export function onServerStart(http: typeof Http.prototype, region: string) {
+export function onServerStart(http: typeof Http.prototype) {
 	http.apiFetch("ingest/analytics/server/start", {
 		method: "POST",
 		headers: {
@@ -14,7 +14,6 @@ export function onServerStart(http: typeof Http.prototype, region: string) {
 			jobId: game.JobId,
 			placeId: tostring(game.PlaceId),
 			timestamp: os.time(),
-			region: region,
 			version: game.PlaceVersion,
 			serverType:
 				game.PrivateServerId !== "" && game.PrivateServerOwnerId !== 0

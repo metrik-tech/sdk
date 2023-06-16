@@ -4,6 +4,7 @@ import log from "./lib/log";
 import { startClient } from "./client";
 import { $package } from "rbxts-transform-debug";
 import { validateToken } from "./lib/token";
+import { Http } from "./lib/http";
 
 export interface IOptions {
 	debug?: boolean;
@@ -20,6 +21,7 @@ export default class SDK {
 
 	constructor({ token, options }: { token?: string; options?: IOptions }) {
 		this.token = token;
+
 		this.options = options || {};
 
 		if (!this.options.apiBase) {
@@ -53,5 +55,139 @@ export default class SDK {
 		} else {
 			log.warn("Running in Roblox Studio, skipping SDK initialization.");
 		}
+	}
+
+	async log(message: string, data: unknown): Promise<void> {
+		if (!this.token) {
+			return;
+		}
+
+		const http = new Http(this.token, { apiBase: this.options.apiBase as string });
+
+		const response = await http.apiFetch("ingest/logs/new", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: HttpService.JSONEncode({
+				universeId: tostring(game.GameId),
+				placeId: tostring(game.PlaceId),
+				env: "server",
+				jobId: game.JobId,
+
+				message,
+				data: data ? HttpService.JSONEncode(data) : undefined,
+				level: "info",
+				timestamp: os.time(),
+			}),
+		});
+
+		if (!response.ok) {
+			log.error(`Failed to log message: ${message}`);
+		}
+
+		print(message, data);
+
+		return;
+	}
+
+	async error(message: string, data: unknown): Promise<void> {
+		if (!this.token) {
+			return;
+		}
+
+		const http = new Http(this.token, { apiBase: this.options.apiBase as string });
+
+		const response = await http.apiFetch("ingest/logs/new", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: HttpService.JSONEncode({
+				universeId: tostring(game.GameId),
+				placeId: tostring(game.PlaceId),
+				env: "server",
+				jobId: game.JobId,
+
+				message,
+				data: data ? HttpService.JSONEncode(data) : undefined,
+				level: "error",
+				timestamp: os.time(),
+			}),
+		});
+
+		if (!response.ok) {
+			log.error(`Failed to log message: ${message}`);
+		}
+
+		warn(message, data);
+
+		return;
+	}
+
+	async crash(message: string, data: unknown): Promise<void> {
+		if (!this.token) {
+			return;
+		}
+
+		const http = new Http(this.token, { apiBase: this.options.apiBase as string });
+
+		const response = await http.apiFetch("ingest/logs/new", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: HttpService.JSONEncode({
+				universeId: tostring(game.GameId),
+				placeId: tostring(game.PlaceId),
+				env: "server",
+				jobId: game.JobId,
+				message,
+				data: data ? HttpService.JSONEncode(data) : undefined,
+				level: "crash",
+				timestamp: os.time(),
+			}),
+		});
+
+		if (!response.ok) {
+			log.error(`Failed to log message: ${message}`);
+		}
+
+		error(`${message} ${HttpService.JSONEncode(data)}`, 2);
+
+		return;
+	}
+
+	async warn(message: string, data: unknown): Promise<void> {
+		warn(message, data);
+
+		if (!this.token) {
+			return;
+		}
+
+		const http = new Http(this.token, { apiBase: this.options.apiBase as string });
+
+		const response = await http.apiFetch("ingest/logs/new", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: HttpService.JSONEncode({
+				universeId: tostring(game.GameId),
+				placeId: tostring(game.PlaceId),
+				env: "server",
+				jobId: game.JobId,
+				message,
+				data: data ? HttpService.JSONEncode(data) : undefined,
+				level: "warn",
+				timestamp: os.time(),
+			}),
+		});
+
+		if (!response.ok) {
+			log.error(`Failed to log message: ${message}`);
+		}
+
+		return;
 	}
 }
