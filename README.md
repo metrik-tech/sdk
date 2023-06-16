@@ -5,7 +5,7 @@
 > **Warning**
 > The Metrik API is NOT currently online. Metrik and the SDK will not work at the moment. Additionally, some parts of the codebase will just straight up not work.
 
-###### Still To Do:
+#### Still To Do:
 - [ ] Fix client message out, currently broken
 - [ ] Add tests
 - [ ] Add other Metrik features
