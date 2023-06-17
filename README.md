@@ -26,8 +26,8 @@ You must have wally installed. Learn more about Wally by Uplift Games [here](
     https://github.com/UpliftGames/wally
 ).
 
-```bash
-wally install metrik-tech/metrik
+```
+metrik = "metrik-tech/sdk@0.0.3"
 ```
 
 ## via `.rbxm`/`.rbxmx`
