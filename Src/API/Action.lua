@@ -28,8 +28,8 @@ function Action.Prototype.CanActivate(self: Action): boolean
 end
 
 --[=[
-	The 'PreActivated' function is called before the Activated function is called, this allows developers to modify the arguments going into the
-		Activated call.
+	The 'PreRun' function is called before the Run function is called, this allows developers to modify the arguments going into the
+		Run call.
 
 	@method PreActivated
 	@within Action
@@ -38,21 +38,21 @@ end
 
 	@return arguments { [any]: any }
 ]=]--
-function Action.Prototype.PreActivated(self: Action, arguments: { [any]: any }): { [any]: any }
+function Action.Prototype.PreRun(self: Action, arguments: { [any]: any }): { [any]: any }
 	return arguments
 end
 
 --[=[
-	The 'OnActivated' function is called when the action needs to be executed, most of your action logic should be in this lifecycle method.
+	The 'OnRun' function is called when the action needs to be executed, most of your action logic should be in this lifecycle method.
 
-	@method OnActivated
+	@method OnRun
 	@within Action
 
 	@param exception string
 
 	@return ... any
 ]=]--
-function Action.Prototype.OnActivated(self: Action, ...: any): ... any
+function Action.Prototype.OnRun(self: Action, ...: any): ... any
 	return
 end
 
@@ -85,7 +85,7 @@ end
 
 	@return ... any
 ]=]--
-function Action.Prototype.PostActivated(self: Action, arguments: { [any]: any }, results: { [any]: any }): ()
+function Action.Prototype.PostRun(self: Action, arguments: { [any]: any }, results: { [any]: any }): ()
 	return
 end
 
