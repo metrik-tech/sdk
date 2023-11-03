@@ -1,0 +1,27 @@
+{
+	"name": "[DEVELOPMENT] metrik-sdk",
+	"servePlaceIds": [ 0 ],
+	"tree": {
+		"$className": "DataModel",
+
+		"ServerStorage": {
+			"$className": "ServerStorage",
+
+			"MetrikSDK": {
+				"$path": "Src",
+
+				"Packages": {
+					"$path": "Packages"
+				}
+			}
+		},
+
+		"ServerScriptService": {
+			"$className": "ServerScriptService",
+
+			"MetrikSDK-Tests": {
+				"$path": "Tests"
+			}
+		}
+	}
+}

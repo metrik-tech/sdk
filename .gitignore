@@ -1,0 +1,16 @@
+/node_modules
+/out
+/include
+/packages
+*.tsbuildinfo
+
+*.rbxm
+*.rbxl
+
+*.tar.gz
+*.tgz
+
+*.log
+*.lock
+
+sourcemap.json

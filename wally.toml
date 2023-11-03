@@ -1,0 +1,22 @@
+[package]
+name = "metrik-tech/metrik-sdk"
+private = false
+version = "1.0.0-dev.0"
+realm = "server"
+license = "MIT"
+registry = "https://github.com/UpliftGames/wally-index"
+
+[dependencies]
+
+# Framework
+Loader = "sleitnick/loader@2.0.0" # https://sleitnick.github.io/RbxUtil/api/Loader
+
+# Miscellaneous
+Console = "4x8matrix/console@2.0.2" # https://github.com/4x8Matrix/Console
+State = "4x8matrix/state@1.2.0" # https://github.com/4x8Matrix/State
+Signal = "sleitnick/signal@1.5.0" # https://sleitnick.github.io/RbxUtil/api/Signal
+Promise = "evaera/promise@4.0.0" # https://eryn.io/roblox-lua-promise/
+Sift = "csqrl/sift@0.0.5" # https://csqrl.github.io/sift/
+
+# Networking
+Comm = "sleitnick/comm@0.3.2" # https://sleitnick.github.io/RbxUtil/api/Comm/
