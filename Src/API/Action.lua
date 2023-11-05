@@ -2,6 +2,8 @@
 	Metrik SDK Action.
 ]]
 
+local Signal = require(script.Parent.Parent.Packages.Signal)
+
 --[=[
 	@class Action
 
@@ -13,6 +15,8 @@ local Action = { }
 Action.Public = { }
 Action.Prototype = { }
 Action.Instantiated = { }
+
+Action.Public.ActionAdded = Signal.new()
 
 --[=[
 	The 'CanActivate' function is called before all lifecycle calls, if the CanActivate call returns false, the event will be stopped,
@@ -67,7 +71,7 @@ end
 	@return ()
 ]=]--
 function Action.Prototype.OnError(self: Action, exception: string): ()
-	return warn(`Action '{self.ActionName}' failed to execute ':OnActivated' call with error:\n{exception}`)
+	return warn(`Action '{self.Name}' failed to execute ':OnActivated' call with error:\n{exception}`)
 end
 
 --[=[
@@ -122,14 +126,14 @@ function Action.Prototype.OnRemoteServerInputRecieved(self: Action, arguments: {
 		return false
 	end
 
-	local processedArguments = self:PreActivated(arguments)
+	local processedArguments = self:PreRun(arguments)
 
 	if not processedArguments then
 		processedArguments = arguments
 	end
 
 	local success, result = pcall(function()
-		return { self:OnActivated(table.unpack(processedArguments, 1, table.maxn(processedArguments))) }
+		return { self:OnRun(table.unpack(processedArguments, 1, table.maxn(processedArguments))) }
 	end)
 
 	if not success then
@@ -138,7 +142,7 @@ function Action.Prototype.OnRemoteServerInputRecieved(self: Action, arguments: {
 		return false
 	end
 
-	self:PostActivated(arguments, result)
+	self:PostRun(arguments, result)
 
 	return true
 end
@@ -173,15 +177,17 @@ end
 	@return Action
 ]=]--
 function Action.Public.new(actionSettings: ActionSettings): Action
-	assert(not Action.Instantiated[actionSettings.Name], `Action '{actionSettings.Name}' already exists.`)
+	assert(not Action.Instantiated[actionSettings.Uuid], `Action '{actionSettings.Uuid}' already exists.`)
 
 	local self = setmetatable({ }, {
 		__index = Action.Prototype
 	})
 
-	self.ActionName = actionSettings.Name
+	self.Name = actionSettings.Name
+	self.Uuid = actionSettings.Uuid
 
-	Action.Instantiated[actionSettings.Name] = self
+	Action.Instantiated[actionSettings.Uuid] = self
+	Action.Public.ActionAdded:Fire(self)
 
 	return self
 end
@@ -202,16 +208,15 @@ end
 
 	@return Action?
 ]=]--
-function Action.Public.from(actionName: string): Action?
-	return Action.Instantiated[actionName]
+function Action.Public.fromUuid(actionUuid: string): Action?
+	return Action.Instantiated[actionUuid]
 end
 
-export type Action = typeof(Action.Prototype) & {
-	ActionName: string
-}
+export type Action = typeof(Action.Prototype) & ActionSettings
 
 export type ActionSettings = {
-	Name: string
+	Name: string,
+	Uuid: string,
 }
 
 return Action.Public
