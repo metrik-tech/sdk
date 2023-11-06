@@ -26,7 +26,11 @@ end
 
 function MessageService.MockEvent(self: MessageService, eventUuid: string, ...: any)
 	self.OnMessageRecieved(eventUuid, {
-		Data = { ... },
+		Data = {
+			targetServerUuid = nil,
+			targetServerVersion = nil,
+			eventArguments = { ... }
+		},
 		Sent = 0,
 	})
 end
