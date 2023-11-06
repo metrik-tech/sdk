@@ -7,7 +7,11 @@ local Loader = require(script.Parent.Parent.Packages.Loader)
 local State = require(script.Parent.Parent.Packages.State)
 local Promise = require(script.Parent.Parent.Packages.Promise)
 
+local Api = require(script.Parent.Parent.Enums.Api)
+
 local Action = require(script.Parent.Parent.API.Action)
+
+local ApiService = require(script.Parent.ApiService)
 
 local ActionService = { }
 
@@ -36,6 +40,15 @@ function ActionService.OnStart(self: ActionService)
 	end
 
 	self.InternalActionsLoaded:Set(true)
+end
+
+function ActionService.OnInit(self: ActionService)
+	Action.ActionAdded:Connect(function(actionObject: Action.Action)
+		ApiService:PostAsync(Api.RegisterAction, {
+			serverUuid = game.JobId,
+			actionUuid = actionObject.Uuid,
+		})
+	end)
 end
 
 export type ActionService = typeof(ActionService)
