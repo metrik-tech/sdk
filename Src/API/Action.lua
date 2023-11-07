@@ -4,6 +4,8 @@
 
 local Signal = require(script.Parent.Parent.Packages.Signal)
 
+local NULL_ACTION_ARGUMENT = "\2<<NULL>>"
+
 --[=[
 	@class Action
 
@@ -126,6 +128,20 @@ function Action.Prototype.OnRemoteServerInputRecieved(self: Action, arguments: {
 		return false
 	end
 
+	if self.Arguments then
+		for argumentIndex, argumentMetadata in next, self.Arguments do
+			if arguments[argumentIndex] == NULL_ACTION_ARGUMENT then
+				arguments[argumentIndex] = argumentMetadata.ArgumentDefault
+			else
+				local typeofTrueArgument = typeof(arguments[argumentIndex])
+
+				if typeofTrueArgument ~= argumentMetadata.ArgumentType then
+					return false
+				end
+			end
+		end
+	end
+
 	local processedArguments = self:PreRun(arguments)
 
 	if not processedArguments then
@@ -186,6 +202,8 @@ function Action.Public.new(actionSettings: ActionSettings): Action
 	self.Name = actionSettings.Name
 	self.Uuid = actionSettings.Uuid
 
+	self.Arguments = actionSettings.Arguments
+
 	Action.Instantiated[actionSettings.Uuid] = self
 	Action.Public.ActionAdded:Fire(self)
 
@@ -217,6 +235,15 @@ export type Action = typeof(Action.Prototype) & ActionSettings
 export type ActionSettings = {
 	Name: string,
 	Uuid: string,
+
+	Arguments: {
+		{
+			ArgumentName: string,
+			ArgumentType: string,
+			ArgumentDefault: any?,
+			ArgumentIsOptional: boolean?,
+		}
+	}?
 }
 
 return Action.Public
