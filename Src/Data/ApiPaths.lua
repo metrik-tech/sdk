@@ -7,5 +7,7 @@ return table.freeze({
 	[Api.ServerEnd] = "/servers/end",
 	[Api.ServerHeartbeat] = "/servers/heartbeat",
 
+	[Api.ServerLogBatch] = "/servers/logs",
+
 	[Api.RegisterAction] = "/actions/register"
 })

@@ -5,5 +5,7 @@ return table.freeze({
 	ServerEnd = "ServerEnd",
 	ServerHeartbeat = "ServerHeartbeat",
 
+	ServerLogBatch = "ServerLogBatch",
+
 	RegisterAction = "RegisterAction"
 })
