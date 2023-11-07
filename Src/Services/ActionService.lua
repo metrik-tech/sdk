@@ -44,9 +44,23 @@ end
 
 function ActionService.OnInit(self: ActionService)
 	Action.ActionAdded:Connect(function(actionObject: Action.Action)
+		local camelCaseActionArguments = { }
+
+		if actionObject.Arguments then
+			for index, actionMetadata in next, actionObject.Arguments do
+				camelCaseActionArguments[index] = {
+					argumentDefault = actionMetadata.ArgumentDefault,
+					argumentIsOptional = actionMetadata.ArgumentIsOptional,
+					argumentName = actionMetadata.ArgumentName,
+					argumentType = actionMetadata.ArgumentType
+				}
+			end
+		end
+
 		ApiService:PostAsync(Api.RegisterAction, {
 			serverUuid = game.JobId,
 			actionUuid = actionObject.Uuid,
+			actionArguments = camelCaseActionArguments,
 		})
 	end)
 end
