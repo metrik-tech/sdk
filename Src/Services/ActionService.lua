@@ -49,10 +49,10 @@ function ActionService.OnInit(self: ActionService)
 		if actionObject.Arguments then
 			for index, actionMetadata in next, actionObject.Arguments do
 				camelCaseActionArguments[index] = {
-					argumentDefault = actionMetadata.ArgumentDefault,
-					argumentIsOptional = actionMetadata.ArgumentIsOptional,
-					argumentName = actionMetadata.ArgumentName,
-					argumentType = actionMetadata.ArgumentType
+					argumentDefault = actionMetadata.Default,
+					argumentIsOptional = actionMetadata.IsRequired or false,
+					argumentName = actionMetadata.Name,
+					argumentType = actionMetadata.Type
 				}
 			end
 		end

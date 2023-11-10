@@ -5,6 +5,12 @@
 local Signal = require(script.Parent.Parent.Packages.Signal)
 
 local NULL_ACTION_ARGUMENT = "\2<<NULL>>"
+local ACCEPTED_ACTION_ARGUMENTS = {
+	["string"] = true,
+	["number"] = true,
+	["boolean"] = true,
+	["player"] = true
+}
 
 --[=[
 	@class Action
@@ -131,11 +137,11 @@ function Action.Prototype.OnRemoteServerInputRecieved(self: Action, arguments: {
 	if self.Arguments then
 		for argumentIndex, argumentMetadata in next, self.Arguments do
 			if arguments[argumentIndex] == NULL_ACTION_ARGUMENT then
-				arguments[argumentIndex] = argumentMetadata.ArgumentDefault
+				arguments[argumentIndex] = argumentMetadata.Default
 			else
 				local typeofTrueArgument = typeof(arguments[argumentIndex])
 
-				if typeofTrueArgument ~= argumentMetadata.ArgumentType then
+				if typeofTrueArgument ~= argumentMetadata.Type then
 					return false
 				end
 			end
@@ -202,7 +208,11 @@ function Action.Public.new(actionSettings: ActionSettings): Action
 	self.Name = actionSettings.Name
 	self.Uuid = actionSettings.Uuid
 
-	self.Arguments = actionSettings.Arguments
+	self.Arguments = actionSettings.Arguments or { }
+
+	for _, argumentObject in self.Arguments do
+		assert(ACCEPTED_ACTION_ARGUMENTS[argumentObject.Type] ~= nil, `Invalid argument type: '{tostring(argumentObject.Type)}', only accepts '{table.concat(ACCEPTED_ACTION_ARGUMENTS, ", ")}'`)
+	end
 
 	Action.Instantiated[actionSettings.Uuid] = self
 	Action.Public.ActionAdded:Fire(self)
@@ -238,10 +248,10 @@ export type ActionSettings = {
 
 	Arguments: {
 		{
-			ArgumentName: string,
-			ArgumentType: string,
-			ArgumentDefault: any?,
-			ArgumentIsOptional: boolean?,
+			Name: string,
+			Type: string,
+			Default: any?,
+			IsRequired: boolean?,
 		}
 	}?
 }

@@ -1,6 +1,5 @@
 {
 	"name": "[DEVELOPMENT] metrik-sdk",
-	"servePlaceIds": [ 0, 15246627262 ],
 	"tree": {
 		"$className": "DataModel",
 

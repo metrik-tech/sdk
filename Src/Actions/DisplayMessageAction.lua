@@ -9,16 +9,16 @@ return function()
 
 		Arguments = {
 			{
-				ArgumentName = "Target Player Id",
-				ArgumentType = "number",
-				ArgumentDefault = -1,
-				ArgumentIsOptional = true,
+				Name = "Target Player Id",
+				Type = "number",
+				Default = -1,
+				IsRequired = false,
 			},
 			{
-				ArgumentName = "Server Message",
-				ArgumentType = "string",
-				ArgumentDefault = "Hello, World!",
-				ArgumentIsOptional = false,
+				Name = "Server Message",
+				Type = "string",
+				Default = "Hello, World!",
+				IsRequired = true,
 			}
 		}
 	})
