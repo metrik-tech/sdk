@@ -33,6 +33,10 @@ return function()
 			filteredServerMessage = textFilterResult:GetNonChatStringForBroadcastAsync()
 		end
 
+		if not string.match(filteredServerMessage, "(%S+)") then
+			filteredServerMessage = "This message was filtered"
+		end
+
 		-- TO-DO: broadcast server message.
 
 		warn(`Broadcasting '{filteredServerMessage}' to '{targetPlayerId or 0}'`)
