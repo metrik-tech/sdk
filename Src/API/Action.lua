@@ -4,13 +4,9 @@
 
 local Signal = require(script.Parent.Parent.Packages.Signal)
 
+local ActionType = require(script.Parent.Parent.Enums.ActionType)
+
 local NULL_ACTION_ARGUMENT = "\2<<NULL>>"
-local ACCEPTED_ACTION_ARGUMENTS = {
-	["string"] = true,
-	["number"] = true,
-	["boolean"] = true,
-	["player"] = true
-}
 
 --[=[
 	@class Action
@@ -211,7 +207,7 @@ function Action.Public.new(actionSettings: ActionSettings): Action
 	self.Arguments = actionSettings.Arguments or { }
 
 	for _, argumentObject in self.Arguments do
-		assert(ACCEPTED_ACTION_ARGUMENTS[argumentObject.Type] ~= nil, `Invalid argument type: '{tostring(argumentObject.Type)}', only accepts '{table.concat(ACCEPTED_ACTION_ARGUMENTS, ", ")}'`)
+		assert(ActionType[argumentObject.Type] ~= nil, `Invalid argument type: '{tostring(argumentObject.Type)}', only accepts '{table.concat(ActionType, ", ")}'`)
 	end
 
 	Action.Instantiated[actionSettings.Uuid] = self

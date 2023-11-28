@@ -85,7 +85,8 @@ function LogCaptureService.OnStart(self: LogCaptureService)
 				continue
 			end
 
-			ApiService:PostAsync(Api.ServerLogBatch, self.MessageQueue)
+			-- todo, need to push several requests for errors, not just a batch.
+			-- ApiService:PostAsync(Api.ServerLogBatch, self.MessageQueue)
 
 			self.MessageQueue = { }
 		end

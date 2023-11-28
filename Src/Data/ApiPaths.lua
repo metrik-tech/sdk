@@ -1,11 +1,11 @@
 local Api = require(script.Parent.Parent.Enums.Api)
 
 return table.freeze({
-	[Api.BaseUrl] = "api.metrik.app",
+	[Api.BaseUrl] = "api.metrik.app/api",
 
-	[Api.ServerStart] = "/servers/start",
-	[Api.ServerEnd] = "/servers/end",
-	[Api.ServerHeartbeat] = "/servers/heartbeat",
+	[Api.ServerStart] = "/server/start",
+	[Api.ServerEnd] = "/server/stop",
+	[Api.ServerHeartbeat] = "/server/heartbeat",
 
 	[Api.ServerLogBatch] = "/servers/logs",
 

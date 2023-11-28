@@ -10,13 +10,14 @@ return function()
 		Arguments = {
 			{
 				Name = "Target Player Id",
-				Type = "number",
-				Default = -1,
+				Type = "Number",
+				-- to-do, fix default so that it's a number, not a string
+				Default = "-1",
 				IsRequired = false,
 			},
 			{
 				Name = "Server Message",
-				Type = "string",
+				Type = "String",
 				Default = "Hello, World!",
 				IsRequired = true,
 			}

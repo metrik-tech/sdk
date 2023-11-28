@@ -31,6 +31,7 @@ MetrikSDK.Private.Public = MetrikSDK.Public
 
 MetrikSDK.Private.Reporter = Console.new("🕙 MetrikSDK-Reporter")
 MetrikSDK.Private.IsInitialized = false
+MetrikSDK.Private.ProjectId = ""
 
 --[=[
 	@prop Action Action
@@ -40,6 +41,26 @@ MetrikSDK.Public.Action = Action
 
 function MetrikSDK.Private.FromError(_: MetrikPrivateAPI, errorEnum:string, ...: string)
 	return string.format(ErrorFormats[errorEnum], ...)
+end
+
+--[=[
+	...
+
+	@method SetAuthenticationToken
+	@within MetrikSDK
+
+	@return ()
+]=]--
+function MetrikSDK.Public.SetAuthenticationToken(self: MetrikPublicAPI, projectId: string)
+	self.Private.Reporter:Assert(
+		not self.Private.IsInitialized,
+		self.Private:FromError(Error.ExpectedCallAfterCall,
+			"Metrik:SetAuthenticationToken",
+			"Metrik:InitializeAsync"
+		)
+	)
+
+	self.Private.ProjectId = projectId
 end
 
 --[=[

@@ -8,6 +8,10 @@ local State = require(script.Parent.Parent.Packages.State)
 local Promise = require(script.Parent.Parent.Packages.Promise)
 
 local Api = require(script.Parent.Parent.Enums.Api)
+local ActionType = require(script.Parent.Parent.Enums.ActionType)
+local Error = require(script.Parent.Parent.Enums.Error)
+
+local ErrorFormats = require(script.Parent.Parent.Data.ErrorFormats)
 
 local Action = require(script.Parent.Parent.API.Action)
 
@@ -48,20 +52,33 @@ function ActionService.OnInit(self: ActionService)
 
 		if actionObject.Arguments then
 			for index, actionMetadata in next, actionObject.Arguments do
+				self.Reporter:Assert(
+					ActionType[actionMetadata.Type] ~= nil,
+					string.format(
+						ErrorFormats[Error.InvalidActionArgumentType],
+						actionMetadata.Type,
+						actionObject.Name
+					)
+				)
+
 				camelCaseActionArguments[index] = {
-					argumentDefault = actionMetadata.Default,
-					argumentIsOptional = actionMetadata.IsRequired or false,
-					argumentName = actionMetadata.Name,
-					argumentType = actionMetadata.Type
+					["default"] = actionMetadata.Default,
+					["required"] = actionMetadata.IsRequired,
+					["name"] = actionMetadata.Name,
+					["type"] = string.upper(actionMetadata.Type)
 				}
 			end
 		end
 
 		ApiService:PostAsync(Api.RegisterAction, {
-			serverUuid = game.JobId,
-			actionUuid = actionObject.Uuid,
-			actionArguments = camelCaseActionArguments,
-		})
+			["serverId"] = ApiService.JobId,
+			["placeVersion"] = tostring(game.PlaceVersion),
+			["key"] = actionObject.Uuid,
+			["name"] = actionObject.Name,
+			["arguments"] = camelCaseActionArguments,
+		}):andThen(function()
+			self.Reporter:Log(`Registered action '{actionObject.Name}' with metrik backend`)
+		end)
 	end)
 end
 
