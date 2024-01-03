@@ -1,0 +1,16 @@
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Documentation Dispatch
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.PAT }}
+          repository: metrik-tech/docs
+          event-type: sync-sdk-docs
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
