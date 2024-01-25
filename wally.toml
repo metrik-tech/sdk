@@ -9,7 +9,7 @@ registry = "https://github.com/UpliftGames/wally-index"
 [dependencies]
 
 # Framework
-Loader = "sleitnick/loader@2.0.0" # https://sleitnick.github.io/RbxUtil/api/Loader
+Runtime = "4x8matrix/runtime@1.0.0"	# https://documentation-git-master-4x8matrix.vercel.app/Packages/Runtime
 
 # Miscellaneous
 Console = "4x8matrix/console@2.0.2" # https://github.com/4x8Matrix/Console

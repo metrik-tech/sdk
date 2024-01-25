@@ -1,4 +1,4 @@
-local LogService = game:GetService("LogService")
+local ScriptContext = game:GetService("ScriptContext")
 
 local Console = require(script.Parent.Parent.Packages.Console)
 local Signal = require(script.Parent.Parent.Packages.Signal)
@@ -9,72 +9,28 @@ local ApiService = require(script.Parent.ApiService)
 
 local MESSAGE_REPORTER_DELAY = 60
 
-local ROBLOX_ERROR_STACK_INFO_PATTERN = "Script '(%S+)', Line (%d+)"
-local ROBLOX_ERROR_STACK_BEGIN_PATTERN = "Stack Begin"
-local ROBLOX_ERROR_STACK_END_PATTERN = "Stack End"
-
-local LogCaptureService = { }
+local LogCaptureService = {}
 
 LogCaptureService.Priority = 0
 LogCaptureService.Reporter = Console.new(`🕵️ {script.Name}`)
 
-LogCaptureService.MessageQueue = { }
+LogCaptureService.MessageQueue = {}
 
 LogCaptureService.MessageQueueUpdated = Signal.new()
 
-function LogCaptureService.OnMessageOutput(self: LogCaptureService, message: string)
+function LogCaptureService.OnMessageError(self: LogCaptureService, message: string, trace: string, filePath: string)
 	table.insert(self.MessageQueue, {
 		["message"] = message,
-		["type"] = Enum.MessageType.MessageOutput.Name
+		["script"] = filePath,
+		["trace"] = trace,
 	})
-end
-
-function LogCaptureService.OnMessageWarning(self: LogCaptureService, message: string)
-	table.insert(self.MessageQueue, {
-		["message"] = message,
-		["type"] = Enum.MessageType.MessageWarning.Name
-	})
-end
-
-function LogCaptureService.OnMessageError(self: LogCaptureService, message: string)
-	table.insert(self.MessageQueue, {
-		["message"] = message,
-		["type"] = Enum.MessageType.MessageError.Name
-	})
-end
-
-function LogCaptureService.OnMessageInfo(self: LogCaptureService, message: string)
-	local lastSentMessage = self.MessageQueue[#self.MessageQueue]
-
-	if
-		(
-			string.match(message, ROBLOX_ERROR_STACK_INFO_PATTERN)
-			or string.match(message, ROBLOX_ERROR_STACK_BEGIN_PATTERN)
-			or string.match(message, ROBLOX_ERROR_STACK_END_PATTERN)
-		) and (
-			lastSentMessage and lastSentMessage.type == Enum.MessageType.MessageError
-		)
-	then
-		lastSentMessage.message ..= `\n{message}`
-	else
-		table.insert(self.MessageQueue, {
-			["message"] = message,
-			["type"] = Enum.MessageType.MessageInfo.Name
-		})
-	end
 end
 
 function LogCaptureService.OnStart(self: LogCaptureService)
-	LogService.MessageOut:Connect(function(message: string, messageType: Enum.MessageType)
-		if messageType == Enum.MessageType.MessageOutput then
-			self:OnMessageOutput(message)
-		elseif messageType == Enum.MessageType.MessageWarning then
-			self:OnMessageWarning(message)
-		elseif messageType == Enum.MessageType.MessageError then
-			self:OnMessageError(message)
-		elseif messageType == Enum.MessageType.MessageInfo then
-			self:OnMessageInfo(message)
-		end
+	ScriptContext.Error:Connect(function(message: string, trace: string, script: Instance)
+		local filePath = script and script:GetFullName() or "?"
+
+		self:OnMessageError(message, trace, filePath)
 	end)
 
 	task.spawn(function()
@@ -85,10 +41,11 @@ function LogCaptureService.OnStart(self: LogCaptureService)
 				continue
 			end
 
-			-- todo, need to push several requests for errors, not just a batch.
-			-- ApiService:PostAsync(Api.ServerLogBatch, self.MessageQueue)
+			ApiService:PostAsync(Api.ServerLogBatch, {
+				items = self.MessageQueue,
+			})
 
-			self.MessageQueue = { }
+			self.MessageQueue = {}
 		end
 	end)
 end

@@ -2,13 +2,12 @@
 	Metrik SDK - https://github.com/metrik-tech/sdk
 ]]
 
-local Loader = require(script.Packages.Loader)
+local Runtime = require(script.Packages.Runtime)
 local Promise = require(script.Packages.Promise)
 local Console = require(script.Packages.Console)
-local Sift = require(script.Packages.Sift)
 
 local Error = require(script.Enums.Error)
- 
+
 local ErrorFormats = require(script.Data.ErrorFormats)
 
 local Action = require(script.API.Action)
@@ -21,10 +20,10 @@ local ON_START_LIFECYCLE_NAME = "OnStart"
 
 	The base class developers will be interacting with. *(TO-DO: add a descriptive class description!)*
 ]=]
-local MetrikSDK = { }
+local MetrikSDK = {}
 
-MetrikSDK.Public = { }
-MetrikSDK.Private = { }
+MetrikSDK.Public = {}
+MetrikSDK.Private = {}
 
 MetrikSDK.Public.Private = MetrikSDK.Private
 MetrikSDK.Private.Public = MetrikSDK.Public
@@ -36,10 +35,11 @@ MetrikSDK.Private.ProjectId = ""
 --[=[
 	@prop Action Action
 	@within MetrikSDK
-]=]--
+]=]
+--
 MetrikSDK.Public.Action = Action
 
-function MetrikSDK.Private.FromError(_: MetrikPrivateAPI, errorEnum:string, ...: string)
+function MetrikSDK.Private.FromError(_: MetrikPrivateAPI, errorEnum: string, ...: string)
 	return string.format(ErrorFormats[errorEnum], ...)
 end
 
@@ -50,14 +50,12 @@ end
 	@within MetrikSDK
 
 	@return ()
-]=]--
+]=]
+--
 function MetrikSDK.Public.SetAuthenticationToken(self: MetrikPublicAPI, projectId: string)
 	self.Private.Reporter:Assert(
 		not self.Private.IsInitialized,
-		self.Private:FromError(Error.ExpectedCallAfterCall,
-			"Metrik:SetAuthenticationToken",
-			"Metrik:InitializeAsync"
-		)
+		self.Private:FromError(Error.ExpectedCallAfterCall, "Metrik:SetAuthenticationToken", "Metrik:InitializeAsync")
 	)
 
 	self.Private.ProjectId = projectId
@@ -76,26 +74,30 @@ end
 	@within MetrikSDK
 
 	@return Promise<()>
-]=]--
+]=]
+--
 function MetrikSDK.Public.InitializeAsync(self: MetrikPublicAPI)
 	return Promise.new(function(resolve, reject)
 		if self.Private.IsInitialized then
 			return reject(self.Private:FromError(Error.AlreadyInitializedError))
 		end
-		
-		local runtimeClockSnapshot = os.clock()
-		local metrikServices = Sift.Dictionary.values(Loader.LoadChildren(script.Services, function(moduleInstance)
-			self.Private.Reporter:Debug(`Loading MetrikSDK Service module: '{moduleInstance.Name}'`)
 
-			return true
-		end))
+		local runtimeClockSnapshot = os.clock()
+		local metrikServices = Runtime:RequireChildren(
+			script.Services,
+			function(module: ModuleScript, moduleContent: { [any]: any })
+				self.Private.Reporter:Debug(`Loading MetrikSDK Service module: '{module.Name}'`)
+
+				return moduleContent
+			end
+		)
 
 		table.sort(metrikServices, function(serviceA, serviceB)
 			return (serviceA.Priority or 0) > (serviceB.Priority or 0)
 		end)
 
-		Loader.SpawnAll(metrikServices, ON_INIT_LIFECYCLE_NAME)
-		Loader.SpawnAll(metrikServices, ON_START_LIFECYCLE_NAME)
+		Runtime:CallMethodOn(metrikServices, ON_INIT_LIFECYCLE_NAME)
+		Runtime:CallMethodOn(metrikServices, ON_START_LIFECYCLE_NAME)
 
 		self.Private.IsInitialized = true
 
