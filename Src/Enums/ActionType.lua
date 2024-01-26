@@ -1,5 +1,6 @@
 return table.freeze({
 	String = "String",
 	Number = "Number",
-	Boolean = "Boolean"
+	Boolean = "Boolean",
+	Player = "Player",
 })

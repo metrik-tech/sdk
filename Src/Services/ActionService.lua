@@ -2,6 +2,8 @@
 	
 ]]
 
+local Players = game:GetService("Players")
+
 local Console = require(script.Parent.Parent.Packages.Console)
 local Runtime = require(script.Parent.Parent.Packages.Runtime)
 local State = require(script.Parent.Parent.Packages.State)
@@ -25,11 +27,39 @@ ActionService.Reporter = Console.new(`🎬 {script.Name}`)
 ActionService.Actions = {} :: { [string]: Action.Action }
 ActionService.InternalActionsLoaded = State.new(false)
 
+function ActionService.DeserialiseArgumentArray(
+	self: ActionService,
+	eventArguments: { [number]: { type: string, name: string, value: any } }
+)
+	local deserialisedArguments = {}
+
+	for _, argumentData in eventArguments do
+		local value
+
+		if argumentData.type == string.upper(ActionType.Number) then
+			value = tonumber(argumentData.value)
+		elseif argumentData.type == string.upper(ActionType.String) then
+			value = tostring(argumentData.value)
+		elseif argumentData.type == string.upper(ActionType.Boolean) then
+			value = argumentData.value == "true" and true or false
+		elseif argumentData.type == string.upper(ActionType.Player) then
+			local playerId = argumentData.value
+			local player = Players:GetPlayerByUserId(playerId)
+
+			value = player
+		end
+
+		table.insert(deserialisedArguments, value)
+	end
+
+	return deserialisedArguments
+end
+
 function ActionService.InvokeActionAsync(self: ActionService, actionUuid: string, eventArguments: { [any]: any })
 	local actionObject = Action.fromUuid(actionUuid)
 
 	return Promise.try(function()
-		return actionObject:OnRemoteServerInputRecieved(eventArguments)
+		return actionObject:OnRemoteServerInputRecieved(self:DeserialiseArgumentArray(eventArguments))
 	end)
 end
 

@@ -6,21 +6,30 @@ MetrikSDK:SetAuthenticationToken(ServerStorage.__Secret_Key.Value)
 MetrikSDK:InitializeAsync():andThen(function()
 	warn("Metrik SDK loaded!")
 
-	-- local MetrikSDKTestAction = MetrikSDK.Action.new({
-	-- 	Name = "Test Action",
-	-- 	Uuid = "testAction",
+	local SDKTest0 = MetrikSDK.Action.new({
+		Name = "Test Action 0",
+		Uuid = "test-action-0",
+	})
 
-	-- 	-- Arguments = {
-	-- 	-- 	{
-	-- 	-- 		Name = "test",
-	-- 	-- 		IsRequired = true,
-	-- 	-- 		Type = "String",
-	-- 	-- 		Default = "",
-	-- 	-- 	},
-	-- 	-- },
-	-- })
+	function SDKTest0:OnRun(...)
+		warn(...)
+	end
 
-	-- function MetrikSDKTestAction:OnRun(...)
-	-- 	warn(...)
-	-- end
+	local SDKTest1 = MetrikSDK.Action.new({
+		Name = "Test Action 1",
+		Uuid = "test-action-1",
+
+		Arguments = {
+			{
+				Name = "message",
+				IsRequired = true,
+				Type = "String",
+				Default = "Default Message!",
+			},
+		},
+	})
+
+	function SDKTest1:OnRun(...)
+		warn(...)
+	end
 end)
