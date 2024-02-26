@@ -1,3 +1,5 @@
 return table.freeze({
-	AlreadyInitializedError = "AlreadyInitializedError"
+	AlreadyInitializedError = "AlreadyInitializedError",
+	ExpectedCallAfterCall = "ExpectedCallAfterCall",
+	InvalidActionArgumentType = "InvalidActionArgumentType"
 })

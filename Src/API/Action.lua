@@ -4,17 +4,19 @@
 
 local Signal = require(script.Parent.Parent.Packages.Signal)
 
+local ActionType = require(script.Parent.Parent.Enums.ActionType)
+
 --[=[
 	@class Action
 
 	Actions enable developers to interact with the Metrik backend, when an action is instantiated the backend is notified so that servers
 		that have this action is callable from the Metrik site.
 ]=]
-local Action = { }
+local Action = {}
 
-Action.Public = { }
-Action.Prototype = { }
-Action.Instantiated = { }
+Action.Public = {}
+Action.Prototype = {}
+Action.Instantiated = {}
 
 Action.Public.ActionAdded = Signal.new()
 
@@ -26,7 +28,8 @@ Action.Public.ActionAdded = Signal.new()
 	@within Action
 
 	@return boolean
-]=]--
+]=]
+--
 function Action.Prototype.CanActivate(self: Action): boolean
 	return true
 end
@@ -41,7 +44,8 @@ end
 	@param arguments { [any]: any }
 
 	@return arguments { [any]: any }
-]=]--
+]=]
+--
 function Action.Prototype.PreRun(self: Action, arguments: { [any]: any }): { [any]: any }
 	return arguments
 end
@@ -55,8 +59,9 @@ end
 	@param exception string
 
 	@return ... any
-]=]--
-function Action.Prototype.OnRun(self: Action, ...: any): ... any
+]=]
+--
+function Action.Prototype.OnRun(self: Action, ...: any): ...any
 	return
 end
 
@@ -69,7 +74,8 @@ end
 	@param exception string
 
 	@return ()
-]=]--
+]=]
+--
 function Action.Prototype.OnError(self: Action, exception: string): ()
 	return warn(`Action '{self.Name}' failed to execute ':OnActivated' call with error:\n{exception}`)
 end
@@ -88,7 +94,8 @@ end
 	@param results { any: any }
 
 	@return ... any
-]=]--
+]=]
+--
 function Action.Prototype.PostRun(self: Action, arguments: { [any]: any }, results: { [any]: any }): ()
 	return
 end
@@ -120,7 +127,8 @@ end
 	@param arguments { any: any }
 
 	@return boolean
-]=]--
+]=]
+--
 function Action.Prototype.OnRemoteServerInputRecieved(self: Action, arguments: { [any]: any }): boolean
 	if not self:CanActivate() then
 		return false
@@ -175,16 +183,26 @@ end
 	@param actionSettings { Name: string }
 
 	@return Action
-]=]--
+]=]
+--
 function Action.Public.new(actionSettings: ActionSettings): Action
 	assert(not Action.Instantiated[actionSettings.Uuid], `Action '{actionSettings.Uuid}' already exists.`)
 
-	local self = setmetatable({ }, {
-		__index = Action.Prototype
+	local self = setmetatable({}, {
+		__index = Action.Prototype,
 	})
 
 	self.Name = actionSettings.Name
 	self.Uuid = actionSettings.Uuid
+
+	self.Arguments = actionSettings.Arguments or {}
+
+	for _, argumentObject in self.Arguments do
+		assert(
+			ActionType[argumentObject.Type] ~= nil,
+			`Invalid argument type: '{tostring(argumentObject.Type)}', only accepts '{table.concat(ActionType, ", ")}'`
+		)
+	end
 
 	Action.Instantiated[actionSettings.Uuid] = self
 	Action.Public.ActionAdded:Fire(self)
@@ -207,7 +225,8 @@ end
 	@param actionName string
 
 	@return Action?
-]=]--
+]=]
+--
 function Action.Public.fromUuid(actionUuid: string): Action?
 	return Action.Instantiated[actionUuid]
 end
@@ -217,6 +236,15 @@ export type Action = typeof(Action.Prototype) & ActionSettings
 export type ActionSettings = {
 	Name: string,
 	Uuid: string,
+
+	Arguments: {
+		{
+			Name: string,
+			Type: string,
+			Default: any?,
+			IsRequired: boolean?,
+		}
+	}?,
 }
 
 return Action.Public
