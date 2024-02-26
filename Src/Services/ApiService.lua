@@ -37,7 +37,7 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 			Url = `https://{ApiPaths[Api.BaseUrl]}/{MetrikAPI.Private.ProjectId}{ApiPaths[api]}`,
 			Method = apiMethod,
 			Headers = {
-				["x-api-key"] = MetrikAPI.Private.ProjectId,
+				["x-api-key"] = MetrikAPI.Private.ProjectToken,
 				["content-type"] = "application/json",
 			},
 			Body = HttpService:JSONEncode(data),
@@ -45,7 +45,7 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 
 		if not response.Success then
 			local decodedJson = HttpService:JSONDecode(response.Body)
-			local protectedProjectId = string.sub(MetrikAPI.Private.ProjectId, 0, #MetrikAPI.Private.ProjectId - 10)
+			local protectedProjectToken = string.sub(MetrikAPI.Private.ProjectToken, 0, #MetrikAPI.Private.ProjectToken - 10)
 			.. string.rep(`*`, 10)
 			local errorObject = {}
 
@@ -55,10 +55,10 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 			errorObject.BodyMessage = decodedJson.code
 			errorObject.Errors = {}
 			errorObject.Request = {
-				Url = `https://{ApiPaths[Api.BaseUrl]}/{protectedProjectId}{ApiPaths[api]}`,
+				Url = `https://{ApiPaths[Api.BaseUrl]}/{MetrikAPI.Private.ProjectId}{ApiPaths[api]}`,
 				Method = apiMethod,
 				Headers = {
-					["x-api-key"] = protectedProjectId,
+					["x-api-key"] = protectedProjectToken,
 					["content-type"] = "application/json",
 				},
 				Body = HttpService:JSONEncode(data),
