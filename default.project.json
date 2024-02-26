@@ -1,7 +1,7 @@
 {
 	"name": "metrik-sdk",
 	"tree": {
-		"$path": "src",
+		"$path": "Src",
 
 		"Packages": {
 			"$path": "Packages"
