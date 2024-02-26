@@ -1,7 +1,7 @@
 local Api = require(script.Parent.Parent.Enums.Api)
 
 return table.freeze({
-	[Api.BaseUrl] = "api.metrik.app/api",
+	[Api.BaseUrl] = "api.metrik.app/api/projects",
 
 	[Api.ServerStart] = "/server/start",
 	[Api.ServerEnd] = "/server/stop",
