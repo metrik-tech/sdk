@@ -21,6 +21,8 @@ LogCaptureService.MessageQueueUpdated = Signal.new()
 function LogCaptureService.OnMessageError(self: LogCaptureService, message: string, trace: string, filePath: string)
 	table.insert(self.MessageQueue, {
 		["message"] = message,
+		["placeVersion"] = game.PlaceVersion,
+		["serverId"] = ApiService.JobId,
 		["script"] = filePath,
 		["trace"] = trace,
 	})
