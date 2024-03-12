@@ -13,6 +13,10 @@ export async function onClientMessageOut(
 	data: IData,
 	options: IOptions,
 ) {
+	if (!options.sendClientLogs) {
+		return;
+	}
+
 	const messageTypes = [
 		{
 			messageType: Enum.MessageType.MessageOutput,
@@ -27,11 +31,20 @@ export async function onClientMessageOut(
 			type: "error",
 		},
 	];
+
+	if (
+		!options.clientLogTypes ||
+		options.clientLogTypes.size() === 0 ||
+		!options.clientLogTypes.find((t) => t === messageTypes.find((mt) => mt.messageType === messageType)!.type)
+	) {
+		return;
+	}
+
 	if (messageTypes.find((mt) => mt.messageType === messageType)) {
-		if (!options.logMetrikMessages && string.match(message, "^[METRIK SDK]")[0]) {
+		if (!options.sendMetrikLogs && string.match(message, "^[METRIK SDK]")[0]) {
 			return;
 		} else if (
-			(options.logMetrikMessages && string.match(message, "^[METRIK SDK]")[0]) ||
+			(options.sendMetrikLogs && string.match(message, "^[METRIK SDK]")[0]) ||
 			!string.match(message, "^[METRIK SDK]")[0]
 		) {
 			http.apiFetch("ingest/logs/new", {
@@ -40,7 +53,6 @@ export async function onClientMessageOut(
 					"Content-Type": "application/json",
 				},
 				body: HttpService.JSONEncode({
-					universeId: tostring(game.GameId),
 					placeId: tostring(game.PlaceId),
 					env: "client",
 					jobId: game.JobId,

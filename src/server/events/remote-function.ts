@@ -34,7 +34,6 @@ export async function onServerInvoke(
 				},
 				body: HttpService.JSONEncode({
 					userId: tostring(player.UserId),
-					universeId: tostring(game.GameId),
 					placeId: tostring(game.PlaceId),
 					region: LocalizationService.GetCountryRegionForPlayerAsync(player),
 					premium: player.MembershipType === Enum.MembershipType.Premium,

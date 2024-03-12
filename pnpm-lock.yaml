@@ -4,6 +4,9 @@ dependencies:
   '@rbxts/http-queue':
     specifier: ^1.1.6
     version: 1.1.6
+  '@rbxts/jwt':
+    specifier: ^0.2.1
+    version: 0.2.1
   '@rbxts/services':
     specifier: ^1.5.1
     version: 1.5.1
@@ -134,6 +137,12 @@ packages:
     resolution: {integrity: sha512-LU7FJ4oB1i1Bl/2eb+rDQzzhfzGQfCFehScGFPSlX5HCTmbpxPQ/9CmS+cBlcFidpU0+WwPPiFR/18rQXRXvsw==}
     dependencies:
       '@rbxts/t': 3.1.0
+    dev: false
+
+  /@rbxts/jwt@0.2.1:
+    resolution: {integrity: sha512-2TePY0ELYM1rFKJEcibCGA+FS76aYtyVagE3iGsVPnXusdrxdzjdNXRVVJOu7cA9u8HNUDUKwZ/VwJiuNJaDiA==}
+    dependencies:
+      '@rbxts/services': 1.5.1
     dev: false
 
   /@rbxts/services@1.5.1:

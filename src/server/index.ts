@@ -14,6 +14,7 @@ import {
 import { fetch, apiFetch } from "../lib/http";
 import log from "../lib/log";
 import { Http } from "../lib/http";
+import { decode } from "@rbxts/jwt";
 
 import {
 	onServerStart,
@@ -87,7 +88,26 @@ export async function startServer(token: string, options: IOptions) {
 		stats: [],
 	} satisfies IData;
 
+	const clientInit = new Instance("RemoteFunction");
+
+	clientInit.Name = "MetrikClientBoundary";
+	clientInit.Parent = game.GetService("ReplicatedStorage");
+
 	const http = new Http(token, { apiBase: options.apiBase as string });
+
+	const rawToken = decode(token);
+
+	if (!rawToken) {
+		log.error("Invalid token provided, exiting.");
+		return;
+	}
+
+	if (rawToken.body.aud !== game.GameId) {
+		log.error(
+			"You are using the wrong token for this game! Ensure that the token you have inserted is connected to the correct project.",
+		);
+		return;
+	}
 
 	const validToken = await validateToken(http);
 
@@ -145,11 +165,6 @@ export async function startServer(token: string, options: IOptions) {
 			});
 		}
 	});
-
-	const clientInit = new Instance("RemoteFunction");
-
-	clientInit.Name = "MetrikClientBoundary";
-	clientInit.Parent = game.GetService("ReplicatedStorage");
 
 	clientInit.OnServerInvoke = async (player, ...args) => {
 		const [success, clientInited] = await onServerInvoke(

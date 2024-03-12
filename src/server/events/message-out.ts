@@ -25,10 +25,10 @@ export function onMessageOut(
 		},
 	];
 	if (messageTypes.find((mt) => mt.messageType === messageType)) {
-		if (!options.logMetrikMessages && string.match(message, "^[METRIK SDK]")[0]) {
+		if (!options.sendMetrikLogs && string.match(message, "^[METRIK SDK]")[0]) {
 			return;
 		} else if (
-			(options.logMetrikMessages && string.match(message, "^[METRIK SDK]")[0]) ||
+			(options.sendMetrikLogs && string.match(message, "^[METRIK SDK]")[0]) ||
 			!string.match(message, "^[METRIK SDK]")[0]
 		) {
 			http.apiFetch("ingest/logs/new", {
@@ -37,7 +37,6 @@ export function onMessageOut(
 					"Content-Type": "application/json",
 				},
 				body: HttpService.JSONEncode({
-					universeId: tostring(game.GameId),
 					placeId: tostring(game.PlaceId),
 					jobId: game.JobId,
 					env: "server",

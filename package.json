@@ -1,6 +1,6 @@
 {
 	"name": "@rbxts/metrik",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"description": "SDK for https://metrik.app",
 	"main": "out/init.lua",
 	"scripts": {
@@ -47,6 +47,7 @@
 	},
 	"dependencies": {
 		"@rbxts/http-queue": "^1.1.6",
+		"@rbxts/jwt": "^0.2.1",
 		"@rbxts/services": "^1.5.1",
 		"@rbxts/topbar-plus": "^2.0.9"
 	}

@@ -10,7 +10,6 @@ export function onServerStart(http: typeof Http.prototype) {
 			"Content-Type": "application/json",
 		},
 		body: HttpService.JSONEncode({
-			universeId: tostring(game.GameId),
 			jobId: game.JobId,
 			placeId: tostring(game.PlaceId),
 			timestamp: os.time(),

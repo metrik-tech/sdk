@@ -6,7 +6,6 @@
 > The Metrik API is NOT currently online. Metrik and the SDK will not work at the moment. Additionally, some parts of the codebase will just straight up not work.
 
 #### Still To Do:
-- [ ] Fix client message out, currently broken
 - [ ] Add tests
 - [ ] Add other Metrik features
 
@@ -27,7 +26,7 @@ You must have wally installed. Learn more about Wally by Uplift Games [here](
 ).
 
 ```
-metrik = "metrik-tech/sdk@0.0.3"
+metrik = "metrik-tech/sdk@0.0.4"
 ```
 
 ## via `.rbxm`/`.rbxmx`
@@ -127,11 +126,7 @@ Logs a message to the Metrik dashboard with extra details.  Internally throws a 
 
 ### `metrik.error(message: string, data: unknown): Promise<void>` SERVER ONLY
 
-Logs an error to the Metrik dashboard with extra details. Internally throws a `warn`.
-
-### `metrik.crash(message: string, data: unknown): Promise<void>` SERVER ONLY
-
-Logs a crash to the Metrik dashboard with extra details. Internally throws an `error`, which stops the thread where it was called AFTER the crash is logged.
+Logs an error to the Metrik dashboard with extra details. Internally throws an `error`.
 
 ### `metrik.warn(message: string, data: unknown): Promise<void>` SERVER ONLY
 
