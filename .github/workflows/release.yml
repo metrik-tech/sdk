@@ -123,3 +123,8 @@ jobs:
               run: |
                   wally publish --project-path ~/temp/metrik/ -v
                   echo "All done!"
+
+            - name: Publish NPM Package
+              run: |
+                  pnpm publish --access public
+                  echo "All done!"
