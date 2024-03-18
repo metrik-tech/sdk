@@ -1,5 +1,6 @@
 {
 	"name": "metrik-sdk",
+	"emitLegacyScripts": false,
 	"tree": {
 		"$path": "src",
 
