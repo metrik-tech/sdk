@@ -1,8 +1,10 @@
 /node_modules
 /out
 /include
-/packages
+/Packages
 *.tsbuildinfo
+
+*/Network/*
 
 *.rbxm
 *.rbxl
