@@ -22,7 +22,7 @@ local ApiService = require(script.Parent.ApiService)
 local ActionService = {}
 
 ActionService.Priority = -1
-ActionService.Reporter = Console.new(`🎬 {script.Name}`)
+ActionService.Reporter = Console.new(`{script.Name}`)
 
 ActionService.Actions = {} :: { [string]: Action.Action }
 ActionService.InternalActionsLoaded = State.new(false)

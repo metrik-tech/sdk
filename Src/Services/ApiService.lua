@@ -9,17 +9,16 @@ local ApiPaths = require(script.Parent.Parent.Data.ApiPaths)
 local Api = require(script.Parent.Parent.Enums.Api)
 local ServerType = require(script.Parent.Parent.Enums.ServerType)
 
-local MetrikAPI = require(script.Parent.Parent)
-
 local HEARTBEAT_UPDATE_SECONDS = 60 * 30 -- send server heartbeat every 30 minutes.
 
 local ApiService = {}
 
 ApiService.Priority = 100
-ApiService.Reporter = Console.new(`🎯 {script.Name}`)
+ApiService.Reporter = Console.new(`{script.Name}`)
 
 ApiService.HTTPEnabled = true
 ApiService.JobId = game.JobId ~= "" and game.JobId or HttpService:GenerateGUID(false)
+ApiService.ProjectId = ""
 
 ApiService.Authenticated = State.new(false)
 
@@ -37,7 +36,7 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 			Url = `https://{ApiPaths[Api.BaseUrl]}{ApiPaths[api]}`,
 			Method = apiMethod,
 			Headers = {
-				["x-api-key"] = MetrikAPI.Private.ProjectId,
+				["x-api-key"] = self.ProjectId,
 				["content-type"] = "application/json",
 			},
 			Body = HttpService:JSONEncode(data),
@@ -56,7 +55,7 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 				Url = `https://{ApiPaths[Api.BaseUrl]}{ApiPaths[api]}`,
 				Method = apiMethod,
 				Headers = {
-					["x-api-key"] = string.sub(MetrikAPI.Private.ProjectId, 0, #MetrikAPI.Private.ProjectId - 10)
+					["x-api-key"] = string.sub(self.ProjectId, 0, #self.ProjectId - 10)
 						.. string.rep(`*`, 10),
 					["content-type"] = "application/json",
 				},
@@ -107,6 +106,14 @@ function ApiService.StopHeartbeat(self: ApiService, nextHeartbeatIn: number?)
 
 		self.HeartbeatThread = nil
 	end
+end
+
+function ApiService.SetProjectId(self: ApiService, projectId: string)
+	self.ProjectId = projectId
+end
+
+function ApiService.SetAuthenticationToken(self: ApiService, authenticationToken: string)
+	self.AuthenticationToken = authenticationToken
 end
 
 function ApiService.OnStart(self: ApiService)

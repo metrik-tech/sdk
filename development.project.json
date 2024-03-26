@@ -1,10 +1,11 @@
 {
 	"name": "[DEVELOPMENT] metrik-sdk",
+	"emitLegacyScripts": false,
 	"tree": {
 		"$className": "DataModel",
 
-		"ServerStorage": {
-			"$className": "ServerStorage",
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
 
 			"MetrikSDK": {
 				"$path": "Src",

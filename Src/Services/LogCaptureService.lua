@@ -7,12 +7,14 @@ local Api = require(script.Parent.Parent.Enums.Api)
 
 local ApiService = require(script.Parent.ApiService)
 
+local Network = require(script.Parent.Parent.Network.Server)
+
 local MESSAGE_REPORTER_DELAY = 60
 
 local LogCaptureService = {}
 
 LogCaptureService.Priority = 0
-LogCaptureService.Reporter = Console.new(`🕵️ {script.Name}`)
+LogCaptureService.Reporter = Console.new(`{script.Name}`)
 
 LogCaptureService.MessageQueue = {}
 
@@ -31,6 +33,12 @@ function LogCaptureService.OnStart(self: LogCaptureService)
 		local filePath = script and script:GetFullName() or "?"
 
 		self:OnMessageError(message, trace, filePath)
+	end)
+
+	Network.LogError.SetCallback(function(_: Player, clientErrorQueue)
+		for _, clientErrorObject in clientErrorQueue do
+			self:OnMessageError(clientErrorObject.message, clientErrorObject.trace, clientErrorObject.filePath)
+		end
 	end)
 
 	task.spawn(function()
