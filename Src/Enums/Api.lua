@@ -1,4 +1,5 @@
 return table.freeze({
+	TraceUrl = "TraceUrl",
 	BaseUrl = "BaseUrl",
 
 	ServerStart = "ServerStart",

@@ -19,8 +19,21 @@ ApiService.Reporter = Console.new(`{script.Name}`)
 ApiService.HTTPEnabled = true
 ApiService.JobId = game.JobId ~= "" and game.JobId or HttpService:GenerateGUID(false)
 ApiService.ProjectId = ""
+ApiService.Trace = {}
 
 ApiService.Authenticated = State.new(false)
+
+function ApiService.RawRequestAsync(self: ApiService, data: { [any]: any })
+	return Promise.new(function(resolve, reject)
+		local response = HttpService:RequestAsync(data)
+
+		if not response.Success then
+			return reject(response)
+		end
+
+		return resolve(response)
+	end)
+end
 
 function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", api: string, data: { [any]: any })
 	return Promise.new(function(resolve, reject)
@@ -32,7 +45,7 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 			)
 		end
 
-		local response = HttpService:RequestAsync({
+		self:RawRequestAsync({
 			Url = `https://{ApiPaths[Api.BaseUrl]}{ApiPaths[api]}`,
 			Method = apiMethod,
 			Headers = {
@@ -40,9 +53,9 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 				["content-type"] = "application/json",
 			},
 			Body = HttpService:JSONEncode(data),
-		})
-
-		if not response.Success then
+		}):andThen(function(response)
+			resolve(response)
+		end):catch(function(response)
 			local decodedJson = HttpService:JSONDecode(response.Body)
 			local errorObject = {}
 
@@ -73,9 +86,7 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 			self.Reporter:Warn(`'{apiMethod}' request failed for API '{api}': %s`, errorObject)
 
 			reject(errorObject)
-		end
-
-		resolve(response)
+		end)
 	end)
 end
 
@@ -129,10 +140,36 @@ function ApiService.OnStart(self: ApiService)
 		serverType = ServerType.Reserved
 	end
 
+	self:RawRequestAsync({
+		Url = `https://{ApiPaths[Api.TraceUrl]}`,
+		Method = "GET"
+	})
+		:andThen(function(response)
+			local traceData = {}
+			
+			local responseBody = response.Body
+			local responseBodySplit = string.split(responseBody, "\n")
+			
+			for _, lineInformation in responseBodySplit do
+				local lineInformationSplit = string.split(lineInformation, "=")
+				local lineKey = table.remove(lineInformationSplit, 1)
+				local lineData = table.concat(lineInformationSplit, "=")
+
+				traceData[lineKey] = lineData
+			end
+
+			self.Reporter:Debug(`Server trace collected; loc={traceData.loc}; ip={traceData.ip}`)
+
+			self.Trace = traceData
+		end)
+		:await()
+
 	self:PostAsync(Api.ServerStart, {
 		["serverId"] = self.JobId,
+		["placeId"] = tostring(game.PlaceId),
 		["placeVersion"] = game.PlaceVersion,
 		["type"] = string.upper(serverType),
+		["region"] = self.Trace.loc
 	})
 		:andThen(function(request)
 			if not request.Success then
