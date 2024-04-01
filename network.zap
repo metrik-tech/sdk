@@ -13,3 +13,10 @@ event LogError = {
 		}
 	},
 }
+
+event BroadcastTopbarMessage = {
+	from: Server,
+	type: Reliable,
+	call: SingleSync,
+	data: string,
+}
