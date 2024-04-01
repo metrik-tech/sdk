@@ -2,11 +2,14 @@ local RunService = game:GetService("RunService")
 
 local MetrikSDK = {}
 
-if RunService:IsRunMode() then
+if not RunService:IsRunning() then
 	MetrikSDK.Disabled = true
 else
-	MetrikSDK.Client = RunService:IsClient() and require(script.Client)
-	MetrikSDK.Server = RunService:IsServer() and require(script.Server)
+	if RunService:IsClient() then
+		MetrikSDK.Client = require(script.Client)
+	else
+		MetrikSDK.Server = require(script.Server)
+	end
 end
 
 return MetrikSDK
