@@ -36,8 +36,12 @@ function LogCaptureControllers.OnStart(self: LogCaptureControllers)
 			task.wait(MESSAGE_REPORTER_DELAY)
 
 			if #self.MessageQueue == 0 then
+				self.Reporter:Debug(`No logs captured, dropping report request.`)
+
 				continue
 			end
+
+			self.Reporter:Debug(`Reporting {#self.MessageQueue} logs to remote server!`)
 
 			Network.LogError.Fire(self.MessageQueue)
 
