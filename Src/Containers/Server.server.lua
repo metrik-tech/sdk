@@ -1,3 +1,3 @@
 require(script.Parent.Parent)
 
-return task.defer(script.Parent.Destroy, script.Parent)
+return task.defer(script.Destroy, script)
