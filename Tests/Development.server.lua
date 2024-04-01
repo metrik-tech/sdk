@@ -3,7 +3,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local MetrikSDK = require(ReplicatedStorage.MetrikSDK)
 
-MetrikSDK.Server:SetAuthenticationToken(ServerStorage.__Secret_Key.Value)
+MetrikSDK.Server:SetProjectId(ServerStorage.__Project_Id.Value)
+MetrikSDK.Server:SetAuthenticationToken(ServerStorage.__Project_Auth.Value)
+
 MetrikSDK.Server:InitializeAsync():andThen(function()
-	warn("Metrik SDK loaded!")
+	-- warn("Metrik SDK loaded!")
+end):catch(function(exception)
+	-- warn("Metrik SDK failed: ", exception)
 end)

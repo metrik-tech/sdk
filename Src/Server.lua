@@ -54,13 +54,30 @@ end
 	@return ()
 ]=]
 --
-function MetrikSDK.Public.SetAuthenticationToken(self: MetrikPublicAPI, projectId: string)
+function MetrikSDK.Public.SetAuthenticationToken(self: MetrikPublicAPI, authenticationToken: string)
 	self.Private.Reporter:Assert(
 		not self.Private.IsInitialized,
 		self.Private:FromError(Error.ExpectedCallAfterCall, "Metrik:SetAuthenticationToken", "Metrik:InitializeAsync")
 	)
 
-	ApiService:SetAuthenticationToken(projectId)
+	ApiService:SetAuthenticationToken(authenticationToken)
+end
+
+--[=[
+	...
+
+	@method SetProjectId
+	@within MetrikSDK.Server
+
+	@return ()
+]=]
+--
+function MetrikSDK.Public.SetProjectId(self: MetrikPublicAPI, projectId: string)
+	self.Private.Reporter:Assert(
+		not self.Private.IsInitialized,
+		self.Private:FromError(Error.ExpectedCallAfterCall, "Metrik:SetProjectId", "Metrik:InitializeAsync")
+	)
+
 	ApiService:SetProjectId(projectId)
 end
 
@@ -99,8 +116,14 @@ function MetrikSDK.Public.InitializeAsync(self: MetrikPublicAPI)
 			return (serviceA.Priority or 0) > (serviceB.Priority or 0)
 		end)
 
-		Runtime:CallMethodOn(metrikServices, ON_INIT_LIFECYCLE_NAME)
-		Runtime:CallMethodOn(metrikServices, ON_START_LIFECYCLE_NAME)
+		local success, response = pcall(function()
+			Runtime:CallMethodOn(metrikServices, ON_INIT_LIFECYCLE_NAME)
+			Runtime:CallMethodOn(metrikServices, ON_START_LIFECYCLE_NAME)
+		end)
+
+		if not success then
+			return reject(response)
+		end
 
 		self.Private.IsInitialized = true
 
