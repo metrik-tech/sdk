@@ -8,6 +8,11 @@ registry = "https://github.com/UpliftGames/wally-index"
 
 [dependencies]
 
+# Interface
+React = "jsdotlua/react@17.0.2"
+ReactRoblox = "jsdotlua/react-roblox@17.0.2"
+ReactSpring = "chriscerie/react-spring@2.0.0"
+
 # Framework
 Runtime = "4x8matrix/runtime@1.0.0"	# https://documentation-git-master-4x8matrix.vercel.app/Packages/Runtime
 
