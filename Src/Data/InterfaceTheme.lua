@@ -10,7 +10,7 @@ return {
 		Pastel = Color3.fromRGB(236, 232, 216),
 	},
 
-	Padding = 8,
+	Padding = 6,
 
 	HeaderFont = Font.new("rbxassetid://12187375716", Enum.FontWeight.ExtraBold, Enum.FontStyle.Normal),
 
@@ -18,4 +18,5 @@ return {
 	TextFontBold = Font.fromName(Enum.Font.SourceSans.Name, Enum.FontWeight.Bold, Enum.FontStyle.Normal),
 	TextFontExtraBold = Font.fromName(Enum.Font.SourceSans.Name, Enum.FontWeight.ExtraBold, Enum.FontStyle.Normal),
 	TextFontItalic = Font.fromName(Enum.Font.SourceSans.Name, Enum.FontWeight.Medium, Enum.FontStyle.Italic),
+	TextFontBoldItalic = Font.fromName(Enum.Font.SourceSans.Name, Enum.FontWeight.Bold, Enum.FontStyle.Italic),
 }
