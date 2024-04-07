@@ -31,7 +31,11 @@ function PopupBroadcastController.RenderNotificationAsync(self: PopupBroadcastCo
 				Name = `MetrikSDK<'PopupBroadcastToast'>`
 			}, {
 				React.createElement(PopupBroadcast, {
-					-- props!
+					message = message,
+
+					onMessageShown = function()
+						resolve()
+					end
 				})
 			})
 		}, Players.LocalPlayer:WaitForChild("PlayerGui")))
