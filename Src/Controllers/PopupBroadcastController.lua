@@ -55,7 +55,7 @@ function PopupBroadcastController.CycleQueue(self: PopupBroadcastController)
 end
 
 function PopupBroadcastController.OnStart(self: PopupBroadcastController)
-	Network.BroadcastTopbarMessage.SetCallback(function(message: string)
+	Network.BroadcastPopupMessage.SetCallback(function(message: string)
 		table.insert(self.Queue, message)
 
 		self:CycleQueue()
