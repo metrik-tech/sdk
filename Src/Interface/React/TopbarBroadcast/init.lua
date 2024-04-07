@@ -6,6 +6,11 @@ local ReactSpring = require(script.Parent.Parent.Parent.Packages.ReactSpring)
 
 local InterfaceTheme = require(script.Parent.Parent.Parent.Data.InterfaceTheme)
 
+local TextLabel = require(script.Parent.Parent.Components.TextLabel)
+
+local RemoveRichTextSizeAttribute = require(script.Parent.Parent.Parent.Util.RemoveRichTextSizeAttribute)
+local RemoveRichTextAttributes = require(script.Parent.Parent.Parent.Util.RemoveRichTextAttributes)
+
 local MAX_SIZE_X = 450
 
 local function lerp(a, b, t)
@@ -17,6 +22,7 @@ local function TopbarBroadcast(properties: {
 
 	onMessageShown: () -> ()
 })
+	local message = RemoveRichTextSizeAttribute(properties.message)
 	local insetSizeY = math.max(GuiService:GetGuiInset().Y, 36)
 	local isOldTopbar = insetSizeY == 36
 
@@ -24,7 +30,7 @@ local function TopbarBroadcast(properties: {
 
 	local textSizeY = insetSizeY == 36 and 20 or insetSizeY - 36
 	local textSizeX = TextService:GetTextSize(
-		properties.message,
+		RemoveRichTextAttributes(message),
 		textSizeY,
 		string.match(InterfaceTheme.TextFont.Family, "/.+/(%S+).json"),
 		Vector2.new(math.huge, math.huge)
@@ -80,7 +86,7 @@ local function TopbarBroadcast(properties: {
 		task.delay(5, function()
 			-- after 5 seconds, start panning to the right-hand side!
 
-			local messageDuration = #properties.message * 0.025
+			local messageDuration = #message * 0.025
 
 			scrollingAnimationApi.start({
 				progress = 1,
@@ -156,10 +162,12 @@ local function TopbarBroadcast(properties: {
 						PaddingLeft = UDim.new(0, InterfaceTheme.Padding)
 					}),
 	
-					textContent = React.createElement("TextLabel", {
-						Text = properties.message,
+					textContent = React.createElement(TextLabel, {
+						Text = message,
 						Size = UDim2.new(0, textSizeX, 1, 0),
 						BackgroundTransparency = 1,
+						Position = UDim2.fromScale(0, 0),
+						AnchorPoint = Vector2.new(0, 0),
 						FontFace = InterfaceTheme.TextFont,
 						TextColor3 = InterfaceTheme.Secondary.White,
 						TextSize = textSizeY,

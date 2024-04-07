@@ -7,7 +7,7 @@ return function(target)
 	local root = ReactRoblox.createRoot(target)
 
 	root:render(React.createElement(component, {
-		message = "START: Hello, World?! Hello, World?! Hello, World?! Hello, World?! Hello, World?! :END"
+		message = "START - Hello, World - END"
 	}))
 
 	return function()
