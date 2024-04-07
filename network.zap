@@ -20,3 +20,10 @@ event BroadcastTopbarMessage = {
 	call: SingleSync,
 	data: string,
 }
+
+event BroadcastChatMessage = {
+	from: Server,
+	type: Reliable,
+	call: SingleSync,
+	data: string,
+}
