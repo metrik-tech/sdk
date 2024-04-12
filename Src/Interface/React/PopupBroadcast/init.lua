@@ -38,7 +38,6 @@ local function PopupBroadcast(properties: {
 	local rawLineCount = math.ceil(textSize.Y / PROMPT_TEXT_SIZE) + 1
 	local lineCount = math.min(rawLineCount, 10)
 
-
 	local rawSizeY = (rawLineCount * (PROMPT_TEXT_SIZE + 2)) - InterfaceTheme.Padding
 	local sizeY = (lineCount * (PROMPT_TEXT_SIZE + 2)) + InterfaceTheme.Padding
 
