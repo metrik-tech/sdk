@@ -9,27 +9,101 @@ local ApiPaths = require(script.Parent.Parent.Data.ApiPaths)
 local Api = require(script.Parent.Parent.Enums.Api)
 local ServerType = require(script.Parent.Parent.Enums.ServerType)
 
-local MetrikAPI = require(script.Parent.Parent)
-
 local HEARTBEAT_UPDATE_SECONDS = 60 * 30 -- send server heartbeat every 30 minutes.
 
 local ApiService = {}
 
 ApiService.Priority = 100
-ApiService.Reporter = Console.new(`🎯 {script.Name}`)
+ApiService.Reporter = Console.new(`{script.Name}`)
 
 ApiService.HTTPEnabled = true
 ApiService.JobId = game.JobId ~= "" and game.JobId or HttpService:GenerateGUID(false)
+
+ApiService.ProjectId = ""
+ApiService.AuthenticationToken = ""
+
 ApiService.Trace = {}
 
 ApiService.Authenticated = State.new(false)
 
+function ApiService._QueryTraceAsync(self: ApiService)
+	return self:RawRequestAsync({
+		Url = `https://{ApiPaths[Api.TraceUrl]}`,
+		Method = "GET"
+	})
+		:andThen(function(response)
+			local traceData = {}
+			
+			local responseBody = response.Body
+			local responseBodySplit = string.split(responseBody, "\n")
+			
+			for _, lineInformation in responseBodySplit do
+				local lineInformationSplit = string.split(lineInformation, "=")
+				local lineKey = table.remove(lineInformationSplit, 1)
+				local lineData = table.concat(lineInformationSplit, "=")
+
+				traceData[lineKey] = lineData
+			end
+
+			self.Reporter:Debug(`Server trace collected; loc={traceData.loc}; ip={traceData.ip}`)
+
+			self.Trace = traceData
+		end)
+end
+
+function ApiService._QueryServerStartAsync(self: ApiService)
+	local serverType = ServerType.Public
+
+	if RunService:IsStudio() then
+		-- todo, backend doesn't support STUDIO
+
+		serverType = ServerType.Reserved
+	elseif game.VIPServerOwnerId ~= 0 then
+		serverType = ServerType.Private
+	elseif game.VIPServerId ~= "" then
+		serverType = ServerType.Reserved
+	end
+
+	return self:PostAsync(Api.ServerStart, {
+		["serverId"] = self.JobId,
+		["placeVersion"] = game.PlaceVersion,
+		["type"] = string.upper(serverType),
+		["region"] = self.Trace.loc
+	})
+		:andThen(function(request)
+			self:Heartbeat(HEARTBEAT_UPDATE_SECONDS)
+
+			self.Reporter:Log(`Server '{self.JobId}' has authenticated with the Metrik API`)
+
+			self.Authenticated:Set(true)
+
+			game:BindToClose(function()
+				self:StopHeartbeat()
+
+				self:PostAsync(Api.ServerEnd, {
+					serverUuid = self.JobId,
+				})
+			end)
+		end)
+end
+
 function ApiService.RawRequestAsync(self: ApiService, data: { [any]: any })
 	return Promise.new(function(resolve, reject)
-		local response = HttpService:RequestAsync(data)
+		local success, response = pcall(HttpService.RequestAsync, HttpService, data)
 
-		if not response.Success then
-			return reject(response)
+		if not success or not response.Success then
+			local responseIsTable = typeof(response) == "table"
+			
+			return reject({
+				Success = responseIsTable and response.Success or success,
+				StatusCode = responseIsTable and response.StatusCode or 0,
+				StatusMessage = responseIsTable and response.StatusMessage or response,
+				Headers = responseIsTable and response.Headers or {},
+				Body = responseIsTable and response.Body or HttpService:JSONEncode({
+					code = 0,
+					message = response
+				})
+			})
 		end
 
 		return resolve(response)
@@ -47,10 +121,10 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 		end
 
 		self:RawRequestAsync({
-			Url = `https://{ApiPaths[Api.BaseUrl]}{ApiPaths[api]}`,
+			Url = `https://{ApiPaths[Api.BaseUrl]}{string.format(ApiPaths[api], self.ProjectId)}`,
 			Method = apiMethod,
 			Headers = {
-				["x-api-key"] = MetrikAPI.Private.ProjectId,
+				["x-api-key"] = self.AuthenticationToken,
 				["content-type"] = "application/json",
 			},
 			Body = HttpService:JSONEncode(data),
@@ -66,10 +140,10 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 			errorObject.BodyMessage = decodedJson.code
 			errorObject.Errors = {}
 			errorObject.Request = {
-				Url = `https://{ApiPaths[Api.BaseUrl]}{ApiPaths[api]}`,
+				Url = `https://{ApiPaths[Api.BaseUrl]}{string.format(ApiPaths[api], self.ProjectId)}`,
 				Method = apiMethod,
 				Headers = {
-					["x-api-key"] = string.sub(MetrikAPI.Private.ProjectId, 0, #MetrikAPI.Private.ProjectId - 10)
+					["x-api-key"] = string.sub(self.AuthenticationToken, 0, #self.AuthenticationToken - 10)
 						.. string.rep(`*`, 10),
 					["content-type"] = "application/json",
 				},
@@ -120,79 +194,34 @@ function ApiService.StopHeartbeat(self: ApiService, nextHeartbeatIn: number?)
 	end
 end
 
+function ApiService.SetProjectId(self: ApiService, projectId: string)
+	self.ProjectId = projectId
+end
+
+function ApiService.SetAuthenticationToken(self: ApiService, authenticationToken: string)
+	self.AuthenticationToken = authenticationToken
+end
+
 function ApiService.OnStart(self: ApiService)
-	local serverType = ServerType.Public
+	local thread = coroutine.running()
 
-	if RunService:IsStudio() then
-		-- todo, backend doesn't support STUDIO
+	task.defer(function()
+		self:_QueryTraceAsync():catch(function(request)
+			coroutine.resume(thread, false, request.StatusMessage)
+		end):await()
 
-		serverType = ServerType.Reserved
-	elseif game.VIPServerOwnerId ~= 0 then
-		serverType = ServerType.Private
-	elseif game.VIPServerId ~= "" then
-		serverType = ServerType.Reserved
-	end
+		self:_QueryServerStartAsync():catch(function(request)
+			coroutine.resume(thread, false, request.StatusMessage)
+		end):await()
 
-	self:RawRequestAsync({
-		Url = `https://{ApiPaths[Api.TraceUrl]}`,
-		Method = "GET"
-	})
-		:andThen(function(response)
-			local traceData = {}
-			
-			local responseBody = response.Body
-			local responseBodySplit = string.split(responseBody, "\n")
-			
-			for _, lineInformation in responseBodySplit do
-				local lineInformationSplit = string.split(lineInformation, "=")
-				local lineKey = table.remove(lineInformationSplit, 1)
-				local lineData = table.concat(lineInformationSplit, "=")
+		coroutine.resume(thread, true)
+	end)
 
-				traceData[lineKey] = lineData
-			end
+	local status, message = coroutine.yield()
 
-			self.Reporter:Debug(`Server trace collected; loc={traceData.loc}; ip={traceData.ip}`)
+	ApiService.HTTPEnabled = status
 
-			self.Trace = traceData
-		end)
-		:await()
-
-	self:PostAsync(Api.ServerStart, {
-		["serverId"] = self.JobId,
-		["placeId"] = tostring(game.PlaceId),
-		["placeVersion"] = game.PlaceVersion,
-		["type"] = string.upper(serverType),
-		["region"] = self.Trace.loc
-	})
-		:andThen(function(request)
-			if not request.Success then
-				self.Reporter:Critical(`Server HTTP Request failed: '{request.StatusCode}' ~ '{request.StatusMessage}'`)
-
-				return
-			end
-
-			self:Heartbeat(HEARTBEAT_UPDATE_SECONDS)
-
-			self.Reporter:Log(`Server '{self.JobId}' has authenticated with the Metrik API`)
-
-			self.Authenticated:Set(true)
-
-			game:BindToClose(function()
-				self:StopHeartbeat()
-
-				self:PostAsync(Api.ServerEnd, {
-					serverUuid = self.JobId,
-				})
-			end)
-		end)
-		:catch(function(exception: string)
-			self.HTTPEnabled = false
-
-			task.spawn(function()
-				self.Reporter:Critical(`Server HTTP Request failed: {exception}`)
-			end)
-		end)
-		:await()
+	assert(status, message)
 end
 
 export type ApiService = typeof(ApiService)

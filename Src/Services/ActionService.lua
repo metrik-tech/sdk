@@ -5,7 +5,7 @@
 local Players = game:GetService("Players")
 
 local Console = require(script.Parent.Parent.Packages.Console)
-local Runtime = require(script.Parent.Parent.Packages.Runtime)
+-- local Runtime = require(script.Parent.Parent.Packages.Runtime)
 local State = require(script.Parent.Parent.Packages.State)
 local Promise = require(script.Parent.Parent.Packages.Promise)
 
@@ -22,7 +22,7 @@ local ApiService = require(script.Parent.ApiService)
 local ActionService = {}
 
 ActionService.Priority = -1
-ActionService.Reporter = Console.new(`🎬 {script.Name}`)
+ActionService.Reporter = Console.new(`{script.Name}`)
 
 ActionService.Actions = {} :: { [string]: Action.Action }
 ActionService.InternalActionsLoaded = State.new(false)
@@ -64,16 +64,18 @@ function ActionService.InvokeActionAsync(self: ActionService, actionUuid: string
 end
 
 function ActionService.OnStart(self: ActionService)
-	local Actions = Runtime:RequireDescendants(script.Parent.Parent.Actions)
+	-- TO-DO!
 
-	for actionModuleName, actionConstructorFunction in Actions do
-		local actionObject = actionConstructorFunction()
+	-- local Actions = Runtime:RequireDescendants(script.Parent.Parent.Actions)
 
-		self.Actions[actionModuleName] = actionObject
-		self.Reporter:Debug(`Loaded internal Metrik action: '{actionModuleName}'`)
-	end
+	-- for actionModuleName, actionConstructorFunction in Actions do
+	-- 	local actionObject = actionConstructorFunction()
 
-	self.InternalActionsLoaded:Set(true)
+	-- 	self.Actions[actionModuleName] = actionObject
+	-- 	self.Reporter:Debug(`Loaded internal Metrik action: '{actionModuleName}'`)
+	-- end
+
+	-- self.InternalActionsLoaded:Set(true)
 end
 
 function ActionService.OnInit(self: ActionService)

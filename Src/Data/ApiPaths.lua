@@ -2,13 +2,13 @@ local Api = require(script.Parent.Parent.Enums.Api)
 
 return table.freeze({
 	[Api.TraceUrl] = "metrik.app/cdn-cgi/trace",
-	[Api.BaseUrl] = "api.metrik.app/api",
+	[Api.BaseUrl] = "api.metrik.app/api/v1",
 
-	[Api.ServerStart] = "/server/start",
-	[Api.ServerEnd] = "/server/stop",
-	[Api.ServerHeartbeat] = "/server/heartbeat",
+	[Api.ServerStart] = "/projects/%s/server/start",
+	[Api.ServerEnd] = "/projects/%s/server/stop",
+	[Api.ServerHeartbeat] = "/projects/%S/server/heartbeat",
 
-	[Api.ServerLogBatch] = "/log/error/batch",
+	[Api.ServerLogBatch] = "/projects/%s/log/error/batch",
 
-	[Api.RegisterAction] = "/actions/register",
+	[Api.RegisterAction] = "/projects/%s/actions/register",
 })

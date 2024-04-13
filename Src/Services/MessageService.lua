@@ -8,7 +8,7 @@ local ActionService = require(script.Parent.ActionService)
 local MessageService = {}
 
 MessageService.Priority = 10
-MessageService.Reporter = Console.new(`💭 {script.Name}`)
+MessageService.Reporter = Console.new(`{script.Name}`)
 
 MessageService.Connections = {} :: { [string]: RBXScriptConnection }
 
@@ -27,7 +27,7 @@ function MessageService.MockEvent(self: MessageService, eventUuid: string, ...: 
 end
 
 function MessageService.OnStart(self: MessageService)
-	MessagingService:SubscribeAsync(`metrik:action:run`, function(packet: MessagingServicePacket)
+	MessagingService:SubscribeAsync(`metrik`, function(packet: MessagingServicePacket)
 		local packetJson = HttpService:JSONDecode(packet.Data)
 
 		if packetJson.targetServerUuid then
