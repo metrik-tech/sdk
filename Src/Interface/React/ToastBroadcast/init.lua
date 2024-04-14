@@ -1,0 +1,140 @@
+local TextService = game:GetService("TextService")
+
+local React = require(script.Parent.Parent.Parent.Packages.React)
+local State = require(script.Parent.Parent.Parent.Packages.State)
+local ReactSpring = require(script.Parent.Parent.Parent.Packages.ReactSpring)
+
+local InterfaceTheme = require(script.Parent.Parent.Parent.Data.InterfaceTheme)
+
+local TextLabel = require(script.Parent.Parent.Components.TextLabel)
+
+local RemoveRichTextSizeAttribute = require(script.Parent.Parent.Parent.Util.RemoveRichTextSizeAttribute)
+local RemoveRichTextAttributes = require(script.Parent.Parent.Parent.Util.RemoveRichTextAttributes)
+
+local BASE_BROADCAST_SIZE = UDim2.fromOffset(50, 50)
+local BASE_POSITION_UDIM = UDim2.fromScale(0.01, 0.85)
+
+local BROADCAST_TEXT_SIZE = 22
+local BROADCAST_TEXT_PADDING = 12
+
+local function ToastBroadcast(properties: {
+	message: string,
+
+	positionalState: typeof(State.new()),
+
+	onMessageShown: () -> ()
+})
+	local message = RemoveRichTextSizeAttribute(properties.message)
+
+	local position, setPosition = React.useState(BASE_POSITION_UDIM)
+
+	local hasAnimatedOut = false
+	local hasAnimatedIn = false
+
+	local inAnimationHook, inAnimationApi = ReactSpring.useSpring(function()
+		return {
+			from = { progress = 0 },
+			to = { progress = 0 },
+		}
+	end)
+
+	local textSize = TextService:GetTextSize(
+		RemoveRichTextAttributes(message),
+		BROADCAST_TEXT_SIZE,
+		string.match(InterfaceTheme.TextFont.Family, "/.+/(%S+).json"),
+		Vector2.new(math.huge, math.huge)
+	)
+
+	local sizeXOffset = textSize.X
+
+	local function animationIn()
+		if hasAnimatedIn then
+			return
+		end
+
+		hasAnimatedIn = true
+
+		inAnimationApi.start({
+			progress = 1,
+	
+			config = {
+				easing = ReactSpring.easings.easeOutBack,
+	
+				duration = 0.4,
+			}
+		})
+	end
+
+	local function animationOut()
+		if hasAnimatedOut then
+			return
+		end
+
+		hasAnimatedOut = true
+
+		inAnimationApi.start({
+			progress = 0,
+	
+			config = {
+				easing = ReactSpring.easings.easeOutBack,
+	
+				duration = 1,
+			}
+		})
+
+		task.delay(1, function()
+			if not properties.onMessageShown then
+				return
+			end
+
+			properties.onMessageShown()
+		end)
+	end
+
+	properties.positionalState.Changed:Connect(function(value)
+		if value > 5 then
+			animationOut()
+		else
+			setPosition(BASE_POSITION_UDIM - UDim2.fromOffset(0, (BASE_BROADCAST_SIZE.Height.Offset + InterfaceTheme.Padding) * (value - 1)))
+		end
+	end)
+
+	animationIn()
+
+	return React.createElement("Frame", {
+		BackgroundTransparency = 0.7,
+		BorderSizePixel = 0,
+		
+		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+
+		Size = BASE_BROADCAST_SIZE + UDim2.fromOffset(sizeXOffset, 0),
+		Position = inAnimationHook.progress:map(function(value)
+			return position - UDim2.fromScale(1 - value, 0)
+		end),
+	}, {
+		UIPadding = React.createElement("UIPadding", {
+			PaddingLeft = UDim.new(0, InterfaceTheme.Padding)
+		}),
+
+		UICorner = React.createElement("UICorner", {
+			CornerRadius = UDim.new(0, InterfaceTheme.Padding)
+		}),
+
+		Label = React.createElement(TextLabel, {
+			Text = message,
+			FontFace = InterfaceTheme.TextFont,
+			RichText = true,
+			TextScaled = false,
+			TextSize = BROADCAST_TEXT_SIZE
+		}, {
+			UIPadding = React.createElement("UIPadding", {
+				PaddingLeft = UDim.new(0, BROADCAST_TEXT_PADDING),
+				PaddingRight = UDim.new(0, BROADCAST_TEXT_PADDING),
+				PaddingTop = UDim.new(0, BROADCAST_TEXT_PADDING),
+				PaddingBottom = UDim.new(0, BROADCAST_TEXT_PADDING)
+			}),
+		})
+	})
+end
+
+return ToastBroadcast

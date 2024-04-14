@@ -18,7 +18,7 @@ Runtime = "4x8matrix/runtime@1.0.0"	# https://documentation-git-master-4x8matrix
 
 # Miscellaneous
 Console = "4x8matrix/console@2.0.2" # https://github.com/4x8Matrix/Console
-State = "4x8matrix/state@1.2.0" # https://github.com/4x8Matrix/State
+State = "4x8matrix/state@2.0.1" # https://github.com/4x8Matrix/State
 Signal = "sleitnick/signal@1.5.0" # https://sleitnick.github.io/RbxUtil/api/Signal
 Promise = "evaera/promise@4.0.0" # https://eryn.io/roblox-lua-promise/
 Sift = "csqrl/sift@0.0.5" # https://csqrl.github.io/sift/
