@@ -21,6 +21,20 @@ event BroadcastTopbarMessage = {
 	data: string,
 }
 
+event BroadcastPopupMessage = {
+	from: Server,
+	type: Reliable,
+	call: SingleSync,
+	data: string,
+}
+
+event BroadcastToastMessage = {
+	from: Server,
+	type: Reliable,
+	call: SingleSync,
+	data: string,
+}
+
 event BroadcastChatMessage = {
 	from: Server,
 	type: Reliable,
