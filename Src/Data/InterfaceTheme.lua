@@ -14,9 +14,9 @@ return {
 
 	HeaderFont = Font.new("rbxassetid://12187375716", Enum.FontWeight.ExtraBold, Enum.FontStyle.Normal),
 
-	TextFont = Font.fromName(Enum.Font.SourceSans.Name, Enum.FontWeight.Medium, Enum.FontStyle.Normal),
-	TextFontBold = Font.fromName(Enum.Font.SourceSans.Name, Enum.FontWeight.Bold, Enum.FontStyle.Normal),
-	TextFontExtraBold = Font.fromName(Enum.Font.SourceSans.Name, Enum.FontWeight.ExtraBold, Enum.FontStyle.Normal),
-	TextFontItalic = Font.fromName(Enum.Font.SourceSans.Name, Enum.FontWeight.Medium, Enum.FontStyle.Italic),
-	TextFontBoldItalic = Font.fromName(Enum.Font.SourceSans.Name, Enum.FontWeight.Bold, Enum.FontStyle.Italic),
+	TextFont = Font.fromName(Enum.Font.BuilderSans.Name, Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+	TextFontBold = Font.fromName(Enum.Font.BuilderSans.Name, Enum.FontWeight.Bold, Enum.FontStyle.Normal),
+	TextFontExtraBold = Font.fromName(Enum.Font.BuilderSans.Name, Enum.FontWeight.ExtraBold, Enum.FontStyle.Normal),
+	TextFontItalic = Font.fromName(Enum.Font.BuilderSans.Name, Enum.FontWeight.Medium, Enum.FontStyle.Italic),
+	TextFontBoldItalic = Font.fromName(Enum.Font.BuilderSans.Name, Enum.FontWeight.Bold, Enum.FontStyle.Italic),
 }
