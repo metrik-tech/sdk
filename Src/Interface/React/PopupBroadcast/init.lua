@@ -20,7 +20,7 @@ local PROMPT_TEXT_SIZE = 22
 local function PopupBroadcast(properties: {
 	message: string,
 
-	onMessageShown: () -> ()
+	onMessageShown: () -> (),
 })
 	local message = RemoveRichTextSizeAttribute(properties.message)
 	local viewportSize = workspace.CurrentCamera.ViewportSize
@@ -46,7 +46,7 @@ local function PopupBroadcast(properties: {
 
 	local buttonTransparencyHook, buttonTransparencyApi = ReactSpring.useSpring(function()
 		return {
-			from = { progress = 0},
+			from = { progress = 0 },
 			to = { progress = 0 },
 		}
 	end)
@@ -61,12 +61,12 @@ local function PopupBroadcast(properties: {
 	local function animationIn()
 		inAnimationApi.start({
 			progress = 1,
-	
+
 			config = {
 				easing = ReactSpring.easings.easeOutBack,
-	
+
 				duration = 0.3,
-			}
+			},
 		})
 	end
 
@@ -79,12 +79,12 @@ local function PopupBroadcast(properties: {
 
 		inAnimationApi.start({
 			progress = 0,
-	
+
 			config = {
 				easing = ReactSpring.easings.easeInBack,
-	
+
 				duration = 0.3,
-			}
+			},
 		})
 
 		task.wait(0.3)
@@ -102,7 +102,10 @@ local function PopupBroadcast(properties: {
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
 		Size = inAnimationHook.progress:map(function(value)
-			return UDim2.fromOffset(textSize.X * value, sizeY + (BUTTON_SIZE_Y_OFFSET + TITLE_SIZE_Y_OFFSET + InterfaceTheme.Padding))
+			return UDim2.fromOffset(
+				textSize.X * value,
+				sizeY + (BUTTON_SIZE_Y_OFFSET + TITLE_SIZE_Y_OFFSET + InterfaceTheme.Padding)
+			)
 		end),
 	}, {
 		backgroundFrame = React.createElement("CanvasGroup", {
@@ -111,7 +114,7 @@ local function PopupBroadcast(properties: {
 			Position = UDim2.fromScale(0.5, 0.5),
 			BackgroundColor3 = InterfaceTheme.Secondary.Black,
 			BorderSizePixel = 0,
-			BackgroundTransparency = 0.3
+			BackgroundTransparency = 0.3,
 		}, {
 			uiGradient = React.createElement("UIGradient", {
 				Transparency = inAnimationHook.progress:map(function(value)
@@ -123,14 +126,14 @@ local function PopupBroadcast(properties: {
 			}),
 
 			uiCorner = React.createElement("UICorner", {
-				CornerRadius = UDim.new(0, InterfaceTheme.Padding)
+				CornerRadius = UDim.new(0, InterfaceTheme.CornerRadius),
 			}),
 
 			uiPadding = React.createElement("UIPadding", {
 				PaddingLeft = UDim.new(0, InterfaceTheme.Padding),
 				PaddingRight = UDim.new(0, InterfaceTheme.Padding),
 				PaddingTop = UDim.new(0, InterfaceTheme.Padding),
-				PaddingBottom = UDim.new(0, InterfaceTheme.Padding)
+				PaddingBottom = UDim.new(0, InterfaceTheme.Padding),
 			}),
 
 			closeButton = React.createElement(TextButton, {
@@ -146,68 +149,68 @@ local function PopupBroadcast(properties: {
 				BackgroundTransparency = buttonTransparencyHook.progress:map(function(value)
 					return value
 				end),
-				
+
 				[React.Event.MouseEnter] = function()
 					buttonTransparencyApi.start({
 						progress = 0.25,
-				
+
 						config = {
 							easing = ReactSpring.easings.easeInQuad,
-				
+
 							duration = 0.1,
-						}
+						},
 					})
 				end,
 
 				[React.Event.MouseLeave] = function()
 					buttonTransparencyApi.start({
 						progress = 0,
-				
+
 						config = {
 							easing = ReactSpring.easings.easeInQuad,
-				
+
 							duration = 0.1,
-						}
+						},
 					})
 				end,
 
 				[React.Event.MouseButton1Down] = function()
 					buttonTransparencyApi.start({
 						progress = 0.45,
-				
+
 						config = {
 							easing = ReactSpring.easings.easeInQuad,
-				
+
 							duration = 0.05,
-						}
+						},
 					})
 				end,
 
 				[React.Event.MouseButton1Up] = function()
 					buttonTransparencyApi.start({
 						progress = 0,
-				
+
 						config = {
 							easing = ReactSpring.easings.easeInQuad,
-				
+
 							duration = 0.05,
-						}
+						},
 					})
 				end,
 
 				[React.Event.Activated] = function()
 					animationOut()
-				end
+				end,
 			}, {
 				uiCorner = React.createElement("UICorner", {
-					CornerRadius = UDim.new(0, InterfaceTheme.Padding - 2)
+					CornerRadius = UDim.new(0, InterfaceTheme.CornerRadius - 2),
 				}),
 
 				uiPadding = React.createElement("UIPadding", {
 					PaddingLeft = UDim.new(0, InterfaceTheme.Padding),
 					PaddingRight = UDim.new(0, InterfaceTheme.Padding),
 					PaddingTop = UDim.new(0, InterfaceTheme.Padding),
-					PaddingBottom = UDim.new(0, InterfaceTheme.Padding)
+					PaddingBottom = UDim.new(0, InterfaceTheme.Padding),
 				}),
 			}),
 
@@ -222,7 +225,7 @@ local function PopupBroadcast(properties: {
 				ScrollBarImageTransparency = 0.5,
 				BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
 				TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
-				AutomaticCanvasSize = Enum.AutomaticSize.Y
+				AutomaticCanvasSize = Enum.AutomaticSize.Y,
 			}, {
 				promptMessage = React.createElement(TextLabel, {
 					Text = message,
@@ -235,13 +238,13 @@ local function PopupBroadcast(properties: {
 					Position = UDim2.fromScale(0, 0),
 					BorderSizePixel = 0,
 					BackgroundTransparency = 0.75,
-	
+
 					AnchorPoint = Vector2.new(0, 0),
 				}, {
-					UICorner = React.createElement("UICorner", {
-						CornerRadius = UDim.new(0, InterfaceTheme.Padding - 2)
-					})
-				})
+					uiCorner = React.createElement("UICorner", {
+						CornerRadius = UDim.new(0, InterfaceTheme.CornerRadius - 2),
+					}),
+				}),
 			}),
 
 			titleMessage = React.createElement(TextLabel, {
@@ -259,10 +262,10 @@ local function PopupBroadcast(properties: {
 					PaddingLeft = UDim.new(0, InterfaceTheme.Padding),
 					PaddingRight = UDim.new(0, InterfaceTheme.Padding),
 					PaddingTop = UDim.new(0, InterfaceTheme.Padding),
-					PaddingBottom = UDim.new(0, InterfaceTheme.Padding)
+					PaddingBottom = UDim.new(0, InterfaceTheme.Padding),
 				}),
-			})
-		})
+			}),
+		}),
 	})
 end
 

@@ -16,7 +16,7 @@ local MAX_SIZE_X = 450
 local function TopbarBroadcast(properties: {
 	message: string,
 
-	onMessageShown: () -> ()
+	onMessageShown: () -> (),
 })
 	local message = RemoveRichTextSizeAttribute(properties.message)
 	local insetSizeY = math.max(GuiService:GetGuiInset().Y, 36)
@@ -51,24 +51,24 @@ local function TopbarBroadcast(properties: {
 	local function animationIn()
 		inAnimationApi.start({
 			progress = 1,
-	
+
 			config = {
 				easing = ReactSpring.easings.easeInOutBack,
-	
+
 				duration = 1,
-			}
+			},
 		})
 	end
 
 	local function animationOut()
 		inAnimationApi.start({
 			progress = 0,
-	
+
 			config = {
 				easing = ReactSpring.easings.easeInBack,
-	
+
 				duration = 1,
-			}
+			},
 		})
 
 		task.wait(1)
@@ -91,7 +91,7 @@ local function TopbarBroadcast(properties: {
 					easing = ReactSpring.easings.easeInOutQuad,
 
 					duration = messageDuration,
-				}
+				},
 			})
 
 			task.wait(messageDuration + 2.5)
@@ -108,11 +108,11 @@ local function TopbarBroadcast(properties: {
 		BackgroundTransparency = 1,
 
 		Size = UDim2.new(1, 0, 0, insetSizeY - topbarPositionPadding),
-		Position = UDim2.new(0, 0, 0, topbarPositionPadding)
+		Position = UDim2.new(0, 0, 0, topbarPositionPadding),
 	}, {
 		backgroundFrame = React.createElement("Frame", {
 			Size = inAnimationHook.progress:map(function(value)
-				return UDim2.new(0, backgroundSizeX * value, 1  * math.min(value + 0.75, 1), 0) 
+				return UDim2.new(0, backgroundSizeX * value, 1 * math.min(value + 0.75, 1), 0)
 			end),
 
 			AnchorPoint = Vector2.new(0.5, 0.5),
@@ -120,10 +120,10 @@ local function TopbarBroadcast(properties: {
 			BackgroundColor3 = InterfaceTheme.Secondary.Black,
 			BackgroundTransparency = inAnimationHook.progress:map(function(value)
 				return 1 - (0.7 * value)
-			end)
+			end),
 		}, {
-			UICorner = React.createElement("UICorner", {
-				CornerRadius = UDim.new(isOldTopbar and 0 or 1, InterfaceTheme.Padding)
+			uiCorner = React.createElement("UICorner", {
+				CornerRadius = UDim.new(isOldTopbar and 0 or 1, InterfaceTheme.Padding), -- this one is still padding because i think its made to match roblox
 			}),
 
 			canvasGroupFrame = React.createElement("Frame", {
@@ -144,9 +144,9 @@ local function TopbarBroadcast(properties: {
 				}, {
 					uiPadding = React.createElement("UIPadding", {
 						PaddingRight = UDim.new(0, InterfaceTheme.Padding),
-						PaddingLeft = UDim.new(0, InterfaceTheme.Padding)
+						PaddingLeft = UDim.new(0, InterfaceTheme.Padding),
 					}),
-	
+
 					textContent = React.createElement(TextLabel, {
 						Text = message,
 						Size = UDim2.new(0, textSizeX, 1, 0),
@@ -161,10 +161,10 @@ local function TopbarBroadcast(properties: {
 						TextTransparency = inAnimationHook.progress:map(function(value)
 							return 1 - value
 						end),
-					})
-				})
+					}),
+				}),
 			}),
-		})
+		}),
 	})
 end
 

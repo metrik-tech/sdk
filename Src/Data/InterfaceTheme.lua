@@ -1,7 +1,5 @@
 return {
-	Primary = {
-	
-	},
+	Primary = {},
 
 	Secondary = {
 		Black = Color3.fromRGB(0, 0, 0),
@@ -11,6 +9,7 @@ return {
 	},
 
 	Padding = 6,
+	CornerRadius = 8,
 
 	HeaderFont = Font.new("rbxassetid://12187375716", Enum.FontWeight.ExtraBold, Enum.FontStyle.Normal),
 
