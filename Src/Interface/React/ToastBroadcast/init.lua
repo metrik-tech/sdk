@@ -11,7 +11,7 @@ local TextLabel = require(script.Parent.Parent.Components.TextLabel)
 local RemoveRichTextSizeAttribute = require(script.Parent.Parent.Parent.Util.RemoveRichTextSizeAttribute)
 local RemoveRichTextAttributes = require(script.Parent.Parent.Parent.Util.RemoveRichTextAttributes)
 
-local BASE_BROADCAST_SIZE = UDim2.fromOffset(50, 50)
+local BASE_BROADCAST_SIZE = UDim2.fromOffset(50, 75)
 local BASE_POSITION_UDIM = UDim2.fromScale(0.01, 0.85)
 
 local BROADCAST_TEXT_SIZE = 22
@@ -102,7 +102,7 @@ local function ToastBroadcast(properties: {
 	animationIn()
 
 	return React.createElement("Frame", {
-		BackgroundTransparency = 0.7,
+		BackgroundTransparency = 0.3,
 		BorderSizePixel = 0,
 		
 		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
@@ -120,12 +120,34 @@ local function ToastBroadcast(properties: {
 			CornerRadius = UDim.new(0, InterfaceTheme.Padding)
 		}),
 
+		titleMessage = React.createElement(TextLabel, {
+			Size = UDim2.fromScale(1, 0.4),
+			Text = "Alert",
+			FontFace = InterfaceTheme.TextFont,
+			BackgroundColor3 = InterfaceTheme.Secondary.LightBlack,
+			TextScaled = true,
+			RichText = true,
+			Position = UDim2.fromScale(0, 0),
+			TextXAlignment = Enum.TextXAlignment.Left,
+
+			AnchorPoint = Vector2.new(0, 0),
+		}, {
+			uiPadding = React.createElement("UIPadding", {
+				PaddingLeft = UDim.new(0, BROADCAST_TEXT_PADDING),
+				PaddingRight = UDim.new(0, BROADCAST_TEXT_PADDING),
+				PaddingTop = UDim.new(0, BROADCAST_TEXT_PADDING),
+			}),
+		}),
+
 		Label = React.createElement(TextLabel, {
 			Text = message,
 			FontFace = InterfaceTheme.TextFont,
+			Size = UDim2.fromScale(1, 0.6),
+			Position = UDim2.fromScale(0.5, 0.65),
 			RichText = true,
 			TextScaled = false,
-			TextSize = BROADCAST_TEXT_SIZE
+			TextSize = BROADCAST_TEXT_SIZE,
+			TextXAlignment = Enum.TextXAlignment.Left,
 		}, {
 			UIPadding = React.createElement("UIPadding", {
 				PaddingLeft = UDim.new(0, BROADCAST_TEXT_PADDING),

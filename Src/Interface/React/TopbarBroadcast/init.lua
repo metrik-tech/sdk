@@ -13,10 +13,6 @@ local RemoveRichTextAttributes = require(script.Parent.Parent.Parent.Util.Remove
 
 local MAX_SIZE_X = 450
 
-local function lerp(a, b, t)
-	return (a + (b - a) * t);
-end
-
 local function TopbarBroadcast(properties: {
 	message: string,
 
@@ -130,28 +126,17 @@ local function TopbarBroadcast(properties: {
 				CornerRadius = UDim.new(isOldTopbar and 0 or 1, InterfaceTheme.Padding)
 			}),
 
-			canvasGroupFrame = React.createElement("CanvasGroup", {
+			canvasGroupFrame = React.createElement("Frame", {
 				Size = UDim2.fromScale(1, 1),
 				BackgroundTransparency = 1,
 			}, {
-				uiGradient = React.createElement("UIGradient", {
-					Transparency = inAnimationHook.progress:map(function(value)
-						return NumberSequence.new({
-							NumberSequenceKeypoint.new(0, 1),
-							NumberSequenceKeypoint.new(0.05, lerp(1, 0, value)),
-							NumberSequenceKeypoint.new(0.95, lerp(1, 0, value)),
-							NumberSequenceKeypoint.new(1, 1),
-						})
-					end),
-				}),
-
 				contentScrollFrame = React.createElement("ScrollingFrame", {
 					Size = UDim2.fromScale(1, 1),
-					BackgroundTransparency = 1,
 					BorderSizePixel = 0,
 					ScrollingEnabled = false,
 					CanvasSize = UDim2.fromScale(0, 0),
 					ScrollBarThickness = 0,
+					BackgroundTransparency = 1,
 					AutomaticCanvasSize = Enum.AutomaticSize.X,
 					CanvasPosition = scrollingAnimationHook.progress:map(function(value)
 						return Vector2.new((textSizeX + (InterfaceTheme.Padding * 2) - backgroundSizeX) * value, 0)
@@ -172,7 +157,10 @@ local function TopbarBroadcast(properties: {
 						TextColor3 = InterfaceTheme.Secondary.White,
 						TextSize = textSizeY,
 						RichText = true,
-						TextXAlignment = Enum.TextXAlignment.Center
+						TextXAlignment = Enum.TextXAlignment.Center,
+						TextTransparency = inAnimationHook.progress:map(function(value)
+							return 1 - value
+						end),
 					})
 				})
 			}),

@@ -14,6 +14,7 @@ local RemoveRichTextAttributes = require(script.Parent.Parent.Parent.Util.Remove
 local PROMPT_MIN_SIZE_X_OFFSET = 200
 local PROMPT_SIZE_X_SCALE = 0.5
 local BUTTON_SIZE_Y_OFFSET = 30
+local TITLE_SIZE_Y_OFFSET = 30
 local PROMPT_TEXT_SIZE = 22
 
 local function PopupBroadcast(properties: {
@@ -45,8 +46,8 @@ local function PopupBroadcast(properties: {
 
 	local buttonTransparencyHook, buttonTransparencyApi = ReactSpring.useSpring(function()
 		return {
-			from = { progress = 0.75 },
-			to = { progress = 0.75 },
+			from = { progress = 0},
+			to = { progress = 0 },
 		}
 	end)
 
@@ -101,7 +102,7 @@ local function PopupBroadcast(properties: {
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
 		Size = inAnimationHook.progress:map(function(value)
-			return UDim2.fromOffset(textSize.X * value, sizeY + (BUTTON_SIZE_Y_OFFSET + InterfaceTheme.Padding))
+			return UDim2.fromOffset(textSize.X * value, sizeY + (BUTTON_SIZE_Y_OFFSET + TITLE_SIZE_Y_OFFSET + InterfaceTheme.Padding))
 		end),
 	}, {
 		backgroundFrame = React.createElement("CanvasGroup", {
@@ -110,7 +111,7 @@ local function PopupBroadcast(properties: {
 			Position = UDim2.fromScale(0.5, 0.5),
 			BackgroundColor3 = InterfaceTheme.Secondary.Black,
 			BorderSizePixel = 0,
-			BackgroundTransparency = 0.5
+			BackgroundTransparency = 0.3
 		}, {
 			uiGradient = React.createElement("UIGradient", {
 				Transparency = inAnimationHook.progress:map(function(value)
@@ -135,7 +136,8 @@ local function PopupBroadcast(properties: {
 			closeButton = React.createElement(TextButton, {
 				Text = "CLOSE",
 				FontFace = InterfaceTheme.TextFontBold,
-				BackgroundColor3 = InterfaceTheme.Secondary.LightBlack,
+				BackgroundColor3 = InterfaceTheme.Secondary.White,
+				TextColor3 = InterfaceTheme.Secondary.Black,
 				Size = UDim2.new(1, 0, 0, BUTTON_SIZE_Y_OFFSET),
 				Position = UDim2.new(0, 0, 1, -BUTTON_SIZE_Y_OFFSET),
 				AnchorPoint = Vector2.new(0, 0),
@@ -147,7 +149,7 @@ local function PopupBroadcast(properties: {
 				
 				[React.Event.MouseEnter] = function()
 					buttonTransparencyApi.start({
-						progress = 0.45,
+						progress = 0.25,
 				
 						config = {
 							easing = ReactSpring.easings.easeInQuad,
@@ -159,7 +161,7 @@ local function PopupBroadcast(properties: {
 
 				[React.Event.MouseLeave] = function()
 					buttonTransparencyApi.start({
-						progress = 0.75,
+						progress = 0,
 				
 						config = {
 							easing = ReactSpring.easings.easeInQuad,
@@ -171,7 +173,7 @@ local function PopupBroadcast(properties: {
 
 				[React.Event.MouseButton1Down] = function()
 					buttonTransparencyApi.start({
-						progress = 0.3,
+						progress = 0.45,
 				
 						config = {
 							easing = ReactSpring.easings.easeInQuad,
@@ -183,7 +185,7 @@ local function PopupBroadcast(properties: {
 
 				[React.Event.MouseButton1Up] = function()
 					buttonTransparencyApi.start({
-						progress = 0.45,
+						progress = 0,
 				
 						config = {
 							easing = ReactSpring.easings.easeInQuad,
@@ -210,8 +212,8 @@ local function PopupBroadcast(properties: {
 			}),
 
 			promptScrollbar = React.createElement("ScrollingFrame", {
-				Size = UDim2.new(1, 0, 1, -BUTTON_SIZE_Y_OFFSET - InterfaceTheme.Padding),
-				Position = UDim2.fromScale(0, 0),
+				Size = UDim2.new(1, 0, 1, -(BUTTON_SIZE_Y_OFFSET + TITLE_SIZE_Y_OFFSET + InterfaceTheme.Padding)),
+				Position = UDim2.fromOffset(0, TITLE_SIZE_Y_OFFSET),
 				BackgroundTransparency = 1,
 				CanvasSize = UDim2.fromScale(0, 0),
 				BorderSizePixel = 0,
@@ -232,7 +234,7 @@ local function PopupBroadcast(properties: {
 					Size = UDim2.new(1, 0, 0, rawSizeY),
 					Position = UDim2.fromScale(0, 0),
 					BorderSizePixel = 0,
-					BackgroundTransparency = 0.75, 
+					BackgroundTransparency = 0.75,
 	
 					AnchorPoint = Vector2.new(0, 0),
 				}, {
@@ -241,6 +243,25 @@ local function PopupBroadcast(properties: {
 					})
 				})
 			}),
+
+			titleMessage = React.createElement(TextLabel, {
+				Size = UDim2.new(1, 0, 0, TITLE_SIZE_Y_OFFSET),
+				Text = "Alert",
+				FontFace = InterfaceTheme.TextFontBold,
+				BackgroundColor3 = InterfaceTheme.Secondary.LightBlack,
+				TextScaled = true,
+				RichText = true,
+				Position = UDim2.fromScale(0, 0),
+
+				AnchorPoint = Vector2.new(0, 0),
+			}, {
+				uiPadding = React.createElement("UIPadding", {
+					PaddingLeft = UDim.new(0, InterfaceTheme.Padding),
+					PaddingRight = UDim.new(0, InterfaceTheme.Padding),
+					PaddingTop = UDim.new(0, InterfaceTheme.Padding),
+					PaddingBottom = UDim.new(0, InterfaceTheme.Padding)
+				}),
+			})
 		})
 	})
 end
