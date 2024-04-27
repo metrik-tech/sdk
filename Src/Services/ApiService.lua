@@ -81,7 +81,7 @@ function ApiService._QueryServerStartAsync(self: ApiService)
 				self:StopHeartbeat()
 
 				self:PostAsync(Api.ServerEnd, {
-					serverUuid = self.JobId,
+					serverId = self.JobId,
 				})
 			end)
 		end)
