@@ -28,6 +28,8 @@ function ToastBroadcastController.RenderToastAsync(self: ToastBroadcastControlle
 
 		local state = State.new(1)
 
+		self.Reporter:Debug(`Displaying toast message for: '{message}'`)
+
 		table.insert(self.PositionalStates, 1, state)
 
 		task.delay(TOAST_EXPIRE_AFTER, function()

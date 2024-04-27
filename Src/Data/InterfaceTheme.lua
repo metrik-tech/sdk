@@ -15,7 +15,7 @@ return {
 	HeaderFont = Font.new("rbxassetid://12187375716", Enum.FontWeight.ExtraBold, Enum.FontStyle.Normal),
 
 	LegacyChatFont = Enum.Font.SourceSansBold,
-	LegacyChatFontColor = Color3.fromRGB(201, 201, 201),
+	LegacyChatFontColor = Color3.fromRGB(255, 255, 255),
 	LegacyChatFontSize = 18,
 
 	TextFont = Font.fromName(Enum.Font.BuilderSans.Name, Enum.FontWeight.Medium, Enum.FontStyle.Normal),
