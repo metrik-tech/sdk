@@ -59,7 +59,7 @@ function ModerationService.OnPlayerAdded(self: ModerationService, player: Player
 					player:Kick(
 						string.format(
 							DEFAULT_BAN_MESSAGAE_EXPIRY,
-							DateTime.fromUnixTimestamp(utcTimeNow):FormatLocalTime("LL", "en-us")
+							DateTime.fromUnixTimestamp(utcTimeNow):FormatLocalTime("LLL", "en-us")
 						)
 					)
 				else
