@@ -123,7 +123,7 @@ local function TopbarBroadcast(properties: {
 			end),
 		}, {
 			uiCorner = React.createElement("UICorner", {
-				CornerRadius = UDim.new(isOldTopbar and 0 or 1, InterfaceTheme.Padding), -- this one is still padding because i think its made to match roblox
+				CornerRadius = UDim.new(isOldTopbar and 0 or 1, 6),
 			}),
 
 			canvasGroupFrame = React.createElement("Frame", {
