@@ -10,6 +10,7 @@ return {
 
 	Padding = 6,
 	CornerRadius = 8,
+	OldTopbarCornerRadius = 6,
 
 	HeaderFont = Font.new("rbxassetid://12187375716", Enum.FontWeight.ExtraBold, Enum.FontStyle.Normal),
 

@@ -123,7 +123,7 @@ local function TopbarBroadcast(properties: {
 			end),
 		}, {
 			uiCorner = React.createElement("UICorner", {
-				CornerRadius = UDim.new(isOldTopbar and 0 or 1, 6),
+				CornerRadius = UDim.new(isOldTopbar and 0 or 1, InterfaceTheme.OldTopbarCornerRadius),
 			}),
 
 			canvasGroupFrame = React.createElement("Frame", {
