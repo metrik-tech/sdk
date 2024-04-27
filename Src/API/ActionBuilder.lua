@@ -38,6 +38,8 @@ function Action.Prototype:OnRun(...: unknown)
 end
 
 function ActionBuilder.Prototype.SetName(self: ActionBuilder, actionName: string): ActionBuilder
+	assert(#actionName <= 50, `Action name is too large, action name ranges between 1 <-> 50 characters!`)
+
 	local actionNameKey = string.lower(actionName)
 
 	actionNameKey = string.gsub(actionNameKey, "\32", "-")
