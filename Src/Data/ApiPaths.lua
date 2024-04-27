@@ -11,4 +11,6 @@ return table.freeze({
 	[Api.ServerLogBatch] = "/projects/%s/log/error/batch",
 
 	[Api.RegisterAction] = "/projects/%s/actions/register",
+
+	[Api.GetModerationStatus] = "/projects/%s/moderation/status",
 })

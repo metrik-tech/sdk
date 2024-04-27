@@ -8,5 +8,7 @@ return table.freeze({
 
 	ServerLogBatch = "ServerLogBatch",
 
-	RegisterAction = "RegisterAction"
+	RegisterAction = "RegisterAction",
+
+	GetModerationStatus = "GetModerationStatus"
 })
