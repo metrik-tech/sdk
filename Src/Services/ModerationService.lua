@@ -60,13 +60,13 @@ function ModerationService.OnPlayerAdded(self: ModerationService, player: Player
 
 				if response.expiry then
 					player:Kick(
-						string.format(
+						response.reason or string.format(
 							DEFAULT_BAN_MESSAGAE_EXPIRY,
 							DateTime.fromUnixTimestamp(utcTimeNow):FormatLocalTime("LLL", "en-us")
 						)
 					)
 				else
-					player:Kick(DEFAULT_BAN_MESSAGE)
+					player:Kick(response.reason or DEFAULT_BAN_MESSAGE)
 				end
 			elseif response.status == ModerationStatus.Clear then
 				self.Reporter:Debug(`Player '{player.DisplayName}' moderation status is clear!`)
