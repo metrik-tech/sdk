@@ -1,6 +1,5 @@
 return table.freeze({
-	Ban = "Ban",
-	Unban = "Unban",
-	Kick = "Kick",
-	Warn = "Warn",
+	Ban = "BAN",
+	Kick = "KICK",
+	Warn = "WARN",
 })

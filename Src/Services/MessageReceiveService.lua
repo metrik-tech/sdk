@@ -23,7 +23,7 @@ function MessageReceiveService.HandleMessageServicePacket(self: MessageReceiveSe
 	local messageContent = HttpService:JSONDecode(decodedPacketJson.message)
 	local topicContent = decodedPacketJson.topic
 
-	self.Reporter:Debug(`Recieved '{topicContent}' request at '{dateTimeSent:FormatLocalTime("LL", "en-us")}'`)
+	self.Reporter:Debug(`Recieved '{topicContent}' request at '{dateTimeSent:FormatLocalTime("LLL", "en-us")}'`)
 
 	if topicContent == TopicType.Actions then
 		self.OnAction:Fire(messageContent)
