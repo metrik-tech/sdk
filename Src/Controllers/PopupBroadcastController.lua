@@ -21,7 +21,12 @@ PopupBroadcastController.QueueCycling = false
 
 function PopupBroadcastController.RenderNotificationAsync(self: PopupBroadcastController, message: string)
 	return Promise.new(function(resolve)
-		self.Root:render(ReactRoblox.createPortal({
+		self.Reporter:Debug(`Displaying popup message for: '{message}'`)
+
+		local rootInstance = Instance.new("Folder")
+		local root = ReactRoblox.createRoot(rootInstance)
+
+		root:render(ReactRoblox.createPortal({
 			React.createElement("ScreenGui", {
 				IgnoreGuiInset = true,
 				Enabled = true,
@@ -34,6 +39,9 @@ function PopupBroadcastController.RenderNotificationAsync(self: PopupBroadcastCo
 					message = message,
 
 					onMessageShown = function()
+						rootInstance:Destroy()
+						root:unmount()
+
 						resolve()
 					end
 				})

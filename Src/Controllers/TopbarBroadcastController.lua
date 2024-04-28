@@ -21,7 +21,12 @@ TopbarBroadcastController.QueueCycling = false
 
 function TopbarBroadcastController.RenderNotificationAsync(self: TopbarBroadcastController, message: string)
 	return Promise.new(function(resolve)
-		self.Root:render(ReactRoblox.createPortal({
+		self.Reporter:Debug(`Displaying topbar message for: '{message}'`)
+
+		local rootInstance = Instance.new("Folder")
+		local root = ReactRoblox.createRoot(rootInstance)
+
+		root:render(ReactRoblox.createPortal({
 			React.createElement("ScreenGui", {
 				IgnoreGuiInset = true,
 				Enabled = true,
@@ -36,7 +41,8 @@ function TopbarBroadcastController.RenderNotificationAsync(self: TopbarBroadcast
 					onMessageShown = function()
 						task.wait(0.5)
 		
-						self.Root:unmount()
+						rootInstance:Destroy()
+						root:unmount()
 		
 						resolve()
 					end

@@ -1,7 +1,5 @@
 return {
-	Primary = {
-	
-	},
+	Primary = {},
 
 	Secondary = {
 		Black = Color3.fromRGB(0, 0, 0),
@@ -11,11 +9,13 @@ return {
 	},
 
 	Padding = 6,
+	CornerRadius = 8,
+	OldTopbarCornerRadius = 6,
 
 	HeaderFont = Font.new("rbxassetid://12187375716", Enum.FontWeight.ExtraBold, Enum.FontStyle.Normal),
 
 	LegacyChatFont = Enum.Font.SourceSansBold,
-	LegacyChatFontColor = Color3.fromRGB(201, 201, 201),
+	LegacyChatFontColor = Color3.fromRGB(255, 255, 255),
 	LegacyChatFontSize = 18,
 
 	TextFont = Font.fromName(Enum.Font.BuilderSans.Name, Enum.FontWeight.Medium, Enum.FontStyle.Normal),

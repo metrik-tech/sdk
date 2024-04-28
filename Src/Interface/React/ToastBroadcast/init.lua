@@ -11,8 +11,11 @@ local TextLabel = require(script.Parent.Parent.Components.TextLabel)
 local RemoveRichTextSizeAttribute = require(script.Parent.Parent.Parent.Util.RemoveRichTextSizeAttribute)
 local RemoveRichTextAttributes = require(script.Parent.Parent.Parent.Util.RemoveRichTextAttributes)
 
-local BASE_BROADCAST_SIZE = UDim2.fromOffset(50, 50)
-local BASE_POSITION_UDIM = UDim2.fromScale(0.01, 0.85)
+local VIEWPORT_SIZE = workspace.CurrentCamera.ViewportSize
+
+local BASE_BROADCAST_SIZE = UDim2.fromOffset(50, 75)
+local BASE_POSITION_UDIM =
+	UDim2.new(0, InterfaceTheme.Padding, 1, VIEWPORT_SIZE.Y - (BASE_BROADCAST_SIZE.Y.Offset + InterfaceTheme.Padding))
 
 local BROADCAST_TEXT_SIZE = 22
 local BROADCAST_TEXT_PADDING = 12
@@ -22,7 +25,7 @@ local function ToastBroadcast(properties: {
 
 	positionalState: typeof(State.new()),
 
-	onMessageShown: () -> ()
+	onMessageShown: () -> (),
 })
 	local message = RemoveRichTextSizeAttribute(properties.message)
 
@@ -56,12 +59,12 @@ local function ToastBroadcast(properties: {
 
 		inAnimationApi.start({
 			progress = 1,
-	
+
 			config = {
 				easing = ReactSpring.easings.easeOutBack,
-	
+
 				duration = 0.4,
-			}
+			},
 		})
 	end
 
@@ -74,12 +77,12 @@ local function ToastBroadcast(properties: {
 
 		inAnimationApi.start({
 			progress = 0,
-	
+
 			config = {
 				easing = ReactSpring.easings.easeOutBack,
-	
+
 				duration = 1,
-			}
+			},
 		})
 
 		task.delay(1, function()
@@ -95,16 +98,19 @@ local function ToastBroadcast(properties: {
 		if value > 5 then
 			animationOut()
 		else
-			setPosition(BASE_POSITION_UDIM - UDim2.fromOffset(0, (BASE_BROADCAST_SIZE.Height.Offset + InterfaceTheme.Padding) * (value - 1)))
+			setPosition(
+				BASE_POSITION_UDIM
+					- UDim2.fromOffset(0, (BASE_BROADCAST_SIZE.Height.Offset + InterfaceTheme.Padding) * (value - 1))
+			)
 		end
 	end)
 
 	animationIn()
 
 	return React.createElement("Frame", {
-		BackgroundTransparency = 0.7,
+		BackgroundTransparency = 0.3,
 		BorderSizePixel = 0,
-		
+
 		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
 
 		Size = BASE_BROADCAST_SIZE + UDim2.fromOffset(sizeXOffset, 0),
@@ -112,28 +118,50 @@ local function ToastBroadcast(properties: {
 			return position - UDim2.fromScale(1 - value, 0)
 		end),
 	}, {
-		UIPadding = React.createElement("UIPadding", {
-			PaddingLeft = UDim.new(0, InterfaceTheme.Padding)
+		uiPadding = React.createElement("UIPadding", {
+			PaddingLeft = UDim.new(0, InterfaceTheme.Padding),
 		}),
 
-		UICorner = React.createElement("UICorner", {
-			CornerRadius = UDim.new(0, InterfaceTheme.Padding)
+		uiCorner = React.createElement("UICorner", {
+			CornerRadius = UDim.new(0, InterfaceTheme.CornerRadius),
 		}),
 
-		Label = React.createElement(TextLabel, {
-			Text = message,
+		titleMessage = React.createElement(TextLabel, {
+			Size = UDim2.fromScale(1, 0.4),
+			Text = "Alert",
 			FontFace = InterfaceTheme.TextFont,
+			BackgroundColor3 = InterfaceTheme.Secondary.LightBlack,
+			TextScaled = true,
 			RichText = true,
-			TextScaled = false,
-			TextSize = BROADCAST_TEXT_SIZE
+			Position = UDim2.fromScale(0, 0),
+			TextXAlignment = Enum.TextXAlignment.Left,
+
+			AnchorPoint = Vector2.new(0, 0),
 		}, {
-			UIPadding = React.createElement("UIPadding", {
+			uiPadding = React.createElement("UIPadding", {
 				PaddingLeft = UDim.new(0, BROADCAST_TEXT_PADDING),
 				PaddingRight = UDim.new(0, BROADCAST_TEXT_PADDING),
 				PaddingTop = UDim.new(0, BROADCAST_TEXT_PADDING),
-				PaddingBottom = UDim.new(0, BROADCAST_TEXT_PADDING)
 			}),
-		})
+		}),
+
+		label = React.createElement(TextLabel, {
+			Text = message,
+			FontFace = InterfaceTheme.TextFont,
+			Size = UDim2.fromScale(1, 0.6),
+			Position = UDim2.fromScale(0.5, 0.65),
+			RichText = true,
+			TextScaled = false,
+			TextSize = BROADCAST_TEXT_SIZE,
+			TextXAlignment = Enum.TextXAlignment.Left,
+		}, {
+			uiPadding = React.createElement("UIPadding", {
+				PaddingLeft = UDim.new(0, BROADCAST_TEXT_PADDING),
+				PaddingRight = UDim.new(0, BROADCAST_TEXT_PADDING),
+				PaddingTop = UDim.new(0, BROADCAST_TEXT_PADDING),
+				PaddingBottom = UDim.new(0, BROADCAST_TEXT_PADDING),
+			}),
+		}),
 	})
 end
 

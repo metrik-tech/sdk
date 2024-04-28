@@ -10,7 +10,7 @@ local Error = require(script.Parent.Enums.Error)
 
 local ErrorFormats = require(script.Parent.Data.ErrorFormats)
 
-local Action = require(script.Parent.API.Action)
+local ActionBuilder = require(script.Parent.API.ActionBuilder)
 
 local ApiService = require(script.Parent.Services.ApiService)
 
@@ -35,11 +35,11 @@ MetrikSDK.Private.IsInitialized = false
 MetrikSDK.Private.ProjectId = ""
 
 --[=[
-	@prop Action Action
+	@prop ActionBuilder ActionBuilder
 	@within MetrikSDK.Server
 ]=]
 --
-MetrikSDK.Public.Action = Action
+MetrikSDK.Public.ActionBuilder = ActionBuilder
 
 function MetrikSDK.Private.FromError(_: MetrikPrivateAPI, errorEnum: string, ...: string)
 	return string.format(ErrorFormats[errorEnum], ...)
