@@ -3,8 +3,7 @@ local ScriptContext = game:GetService("ScriptContext")
 local Console = require(script.Parent.Parent.Packages.Console)
 local Signal = require(script.Parent.Parent.Packages.Signal)
 
-local Api = require(script.Parent.Parent.Enums.Api)
-
+local ApiPaths = require(script.Parent.Parent.Data.ApiPaths)
 local ApiService = require(script.Parent.ApiService)
 
 local Network = require(script.Parent.Parent.Network.Server)
@@ -51,7 +50,7 @@ function LogCaptureService.OnStart(self: LogCaptureService)
 				continue
 			end
 
-			ApiService:PostAsync(Api.ServerLogBatch, {
+			ApiService:PostAsync(string.format(ApiPaths.ServerLogBatch, ApiService.ProjectId), {
 				items = self.MessageQueue,
 			})
 

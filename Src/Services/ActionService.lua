@@ -7,7 +7,7 @@ local Console = require(script.Parent.Parent.Packages.Console)
 
 local MessageReceiveService = require(script.Parent.MessageReceiveService)
 
-local Api = require(script.Parent.Parent.Enums.Api)
+local ApiPaths = require(script.Parent.Parent.Data.ApiPaths)
 
 local ApiService = require(script.Parent.ApiService)
 
@@ -38,7 +38,10 @@ function ActionService.RegisterActionAsync(self: ActionService, action: any)
 		table.insert(requestBody.arguments, argumentBody)
 	end
 
-	ApiService:PostAsync(Api.RegisterAction, requestBody):andThen(function()
+	ApiService:PostAsync(string.format(
+		ApiPaths.RegisterAction,
+		ApiService.ProjectId
+	), requestBody):andThen(function()
 		print("REGISTERED ACTION!")
 	end)
 end

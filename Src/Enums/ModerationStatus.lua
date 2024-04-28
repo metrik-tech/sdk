@@ -1,3 +1,4 @@
 return table.freeze({
-	Banned = "BANNED"
+	Banned = "BANNED",
+	Clear = "CLEAR"
 })

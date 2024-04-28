@@ -1,4 +1,5 @@
 local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
 
 local Console = require(script.Parent.Parent.Packages.Console)
 local Promise = require(script.Parent.Parent.Packages.Promise)
@@ -8,7 +9,7 @@ local ApiService = require(script.Parent.ApiService)
 
 local ModerationStatus = require(script.Parent.Parent.Enums.ModerationStatus)
 local ModerationType = require(script.Parent.Parent.Enums.ModerationType)
-local Api = require(script.Parent.Parent.Enums.Api)
+local ApiPaths = require(script.Parent.Parent.Data.ApiPaths)
 
 local Network = require(script.Parent.Parent.Network.Server)
 
@@ -22,20 +23,22 @@ ModerationService.Reporter = Console.new(`{script.Name}`)
 
 function ModerationService.FetchPlayerModerationStatusAsync(self: ModerationService, player: Player)
 	return Promise.new(function(resolve)
-		local result = ApiService:GetAsync(Api.GetModerationStatus, {
+		local success, result = ApiService:GetAsync(string.format(ApiPaths.GetModerationStatus, ApiService.ProjectId), {
 			userId = player.UserId
-		})
+		}):await()
 
-		if not result.ok then
+		if not success or not result.Success then
 			self.Reporter:Warn(`Failed to fetch Moderation status for user; '{player.DisplayName}'`)
 			self.Reporter:Debug(result)
 
 			resolve({
 				status = "unknown"
 			})
+
+			return
 		end
 
-		resolve(result.body)
+		resolve(HttpService:JSONDecode(result.Body))
 	end)
 end
 
@@ -65,6 +68,8 @@ function ModerationService.OnPlayerAdded(self: ModerationService, player: Player
 				else
 					player:Kick(DEFAULT_BAN_MESSAGE)
 				end
+			elseif response.status == ModerationStatus.Clear then
+				self.Reporter:Debug(`Player '{player.DisplayName}' moderation status is clear!`)
 			else
 				self.Reporter:Debug(`Player '{player.DisplayName}' moderation status is unknown; '{response.status or "NULL"}'`)
 			end
