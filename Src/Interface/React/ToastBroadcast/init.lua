@@ -11,11 +11,9 @@ local TextLabel = require(script.Parent.Parent.Components.TextLabel)
 local RemoveRichTextSizeAttribute = require(script.Parent.Parent.Parent.Util.RemoveRichTextSizeAttribute)
 local RemoveRichTextAttributes = require(script.Parent.Parent.Parent.Util.RemoveRichTextAttributes)
 
-local VIEWPORT_SIZE = workspace.CurrentCamera.ViewportSize
-
 local BASE_BROADCAST_SIZE = UDim2.fromOffset(50, 75)
 local BASE_POSITION_UDIM =
-	UDim2.new(0, InterfaceTheme.Padding, 1, VIEWPORT_SIZE.Y - (BASE_BROADCAST_SIZE.Y.Offset + InterfaceTheme.Padding))
+	UDim2.new(0, InterfaceTheme.Padding, 1, -(BASE_BROADCAST_SIZE.Y.Offset + InterfaceTheme.Padding))
 
 local BROADCAST_TEXT_SIZE = 22
 local BROADCAST_TEXT_PADDING = 12
