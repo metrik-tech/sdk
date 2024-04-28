@@ -21,6 +21,8 @@ PopupBroadcastController.QueueCycling = false
 
 function PopupBroadcastController.RenderNotificationAsync(self: PopupBroadcastController, message: string)
 	return Promise.new(function(resolve)
+		self.Reporter:Debug(`Displaying popup message for: '{message}'`)
+
 		self.Root:render(ReactRoblox.createPortal({
 			React.createElement("ScreenGui", {
 				IgnoreGuiInset = true,

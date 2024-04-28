@@ -13,14 +13,10 @@ local RemoveRichTextAttributes = require(script.Parent.Parent.Parent.Util.Remove
 
 local MAX_SIZE_X = 450
 
-local function lerp(a, b, t)
-	return (a + (b - a) * t);
-end
-
 local function TopbarBroadcast(properties: {
 	message: string,
 
-	onMessageShown: () -> ()
+	onMessageShown: () -> (),
 })
 	local message = RemoveRichTextSizeAttribute(properties.message)
 	local insetSizeY = math.max(GuiService:GetGuiInset().Y, 36)
@@ -55,24 +51,24 @@ local function TopbarBroadcast(properties: {
 	local function animationIn()
 		inAnimationApi.start({
 			progress = 1,
-	
+
 			config = {
 				easing = ReactSpring.easings.easeInOutBack,
-	
+
 				duration = 1,
-			}
+			},
 		})
 	end
 
 	local function animationOut()
 		inAnimationApi.start({
 			progress = 0,
-	
+
 			config = {
 				easing = ReactSpring.easings.easeInBack,
-	
+
 				duration = 1,
-			}
+			},
 		})
 
 		task.wait(1)
@@ -95,7 +91,7 @@ local function TopbarBroadcast(properties: {
 					easing = ReactSpring.easings.easeInOutQuad,
 
 					duration = messageDuration,
-				}
+				},
 			})
 
 			task.wait(messageDuration + 2.5)
@@ -112,11 +108,11 @@ local function TopbarBroadcast(properties: {
 		BackgroundTransparency = 1,
 
 		Size = UDim2.new(1, 0, 0, insetSizeY - topbarPositionPadding),
-		Position = UDim2.new(0, 0, 0, topbarPositionPadding)
+		Position = UDim2.new(0, 0, 0, topbarPositionPadding),
 	}, {
 		backgroundFrame = React.createElement("Frame", {
 			Size = inAnimationHook.progress:map(function(value)
-				return UDim2.new(0, backgroundSizeX * value, 1  * math.min(value + 0.75, 1), 0) 
+				return UDim2.new(0, backgroundSizeX * value, 1 * math.min(value + 0.75, 1), 0)
 			end),
 
 			AnchorPoint = Vector2.new(0.5, 0.5),
@@ -124,34 +120,23 @@ local function TopbarBroadcast(properties: {
 			BackgroundColor3 = InterfaceTheme.Secondary.Black,
 			BackgroundTransparency = inAnimationHook.progress:map(function(value)
 				return 1 - (0.7 * value)
-			end)
+			end),
 		}, {
-			UICorner = React.createElement("UICorner", {
-				CornerRadius = UDim.new(isOldTopbar and 0 or 1, InterfaceTheme.Padding)
+			uiCorner = React.createElement("UICorner", {
+				CornerRadius = UDim.new(isOldTopbar and 0 or 1, InterfaceTheme.OldTopbarCornerRadius),
 			}),
 
-			canvasGroupFrame = React.createElement("CanvasGroup", {
+			canvasGroupFrame = React.createElement("Frame", {
 				Size = UDim2.fromScale(1, 1),
 				BackgroundTransparency = 1,
 			}, {
-				uiGradient = React.createElement("UIGradient", {
-					Transparency = inAnimationHook.progress:map(function(value)
-						return NumberSequence.new({
-							NumberSequenceKeypoint.new(0, 1),
-							NumberSequenceKeypoint.new(0.05, lerp(1, 0, value)),
-							NumberSequenceKeypoint.new(0.95, lerp(1, 0, value)),
-							NumberSequenceKeypoint.new(1, 1),
-						})
-					end),
-				}),
-
 				contentScrollFrame = React.createElement("ScrollingFrame", {
 					Size = UDim2.fromScale(1, 1),
-					BackgroundTransparency = 1,
 					BorderSizePixel = 0,
 					ScrollingEnabled = false,
 					CanvasSize = UDim2.fromScale(0, 0),
 					ScrollBarThickness = 0,
+					BackgroundTransparency = 1,
 					AutomaticCanvasSize = Enum.AutomaticSize.X,
 					CanvasPosition = scrollingAnimationHook.progress:map(function(value)
 						return Vector2.new((textSizeX + (InterfaceTheme.Padding * 2) - backgroundSizeX) * value, 0)
@@ -159,9 +144,9 @@ local function TopbarBroadcast(properties: {
 				}, {
 					uiPadding = React.createElement("UIPadding", {
 						PaddingRight = UDim.new(0, InterfaceTheme.Padding),
-						PaddingLeft = UDim.new(0, InterfaceTheme.Padding)
+						PaddingLeft = UDim.new(0, InterfaceTheme.Padding),
 					}),
-	
+
 					textContent = React.createElement(TextLabel, {
 						Text = message,
 						Size = UDim2.new(0, textSizeX, 1, 0),
@@ -172,11 +157,14 @@ local function TopbarBroadcast(properties: {
 						TextColor3 = InterfaceTheme.Secondary.White,
 						TextSize = textSizeY,
 						RichText = true,
-						TextXAlignment = Enum.TextXAlignment.Center
-					})
-				})
+						TextXAlignment = Enum.TextXAlignment.Center,
+						TextTransparency = inAnimationHook.progress:map(function(value)
+							return 1 - value
+						end),
+					}),
+				}),
 			}),
-		})
+		}),
 	})
 end
 
