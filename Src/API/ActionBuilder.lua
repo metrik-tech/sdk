@@ -1,5 +1,7 @@
 local Sift = require(script.Parent.Parent.Packages.Sift)
 
+local ActionService = require(script.Parent.Parent.Services.ActionService)
+
 --[[
 	Metrik SDK ActionBuilder & Action
 ]]
@@ -61,7 +63,14 @@ function ActionBuilder.Prototype.SetDescription(self: ActionBuilder, description
 end
 
 function ActionBuilder.Prototype.AddArgument(self: ActionBuilder, argumentName: string, argumentMetadata: ArgumentMetadata?): ActionBuilder
-	(self.Prototype.Arguments :: {})[argumentName] = Sift.Dictionary.merge(argumentMetadata, {
+	local filteredArgumentName = string.lower(argumentName)
+	local argumentsDict = self.Prototype.Arguments :: { }
+
+	filteredArgumentName = string.gsub(filteredArgumentName, "\32", "-")
+	filteredArgumentName = string.gsub(filteredArgumentName, "\9", "-")
+	filteredArgumentName = string.gsub(filteredArgumentName, "\0", "")
+	
+	argumentsDict[filteredArgumentName] = Sift.Dictionary.merge(argumentMetadata, {
 		Type = "string",
 		Description = "",
 		Required = false
@@ -76,11 +85,11 @@ function ActionBuilder.Prototype.Build(self: ActionBuilder): Action
 
 	Action.Instantiated[self.Prototype.Key] = setmetatable(Sift.Dictionary.copyDeep(self.Prototype) :: { }, ActionBuilder.Prototype) :: Action
 
-	return Action.Instantiated[self.Prototype.Key]
-end
+	task.defer(function()
+		ActionService:RegisterActionAsync(Action.Instantiated[self.Prototype.Key]):expect()
+	end)
 
-function ActionBuilder.Public._getAction(actionKey: string): ActionBuilder
-	return Action.Instantiated[actionKey]
+	return Action.Instantiated[self.Prototype.Key]
 end
 
 function ActionBuilder.Public.new(): ActionBuilder
@@ -89,7 +98,7 @@ function ActionBuilder.Public.new(): ActionBuilder
 			Arguments = { }
 		}
 	}, {
-		__index = Action.Prototype
+		__index = ActionBuilder.Prototype
 	}) :: ActionBuilder
 end
 

@@ -8,23 +8,20 @@ MetrikSDK.Server:SetAuthenticationToken(ServerStorage.__Project_Auth.Value)
 
 MetrikSDK.Server:InitializeAsync():andThen(function()
 	warn("Metrik SDK loaded!")
-	
+
 	local action = MetrikSDK.Server.ActionBuilder.new()
-		:SetName("Hello, world!")
-		:SetDescription("A simple 'Hello, World' print!")
-		:AddArgument("String", {
+		:SetName("Hello World")
+		:SetDescription("Prints 'Hello, World' with an option for another message")
+		:AddArgument("Message", {
+			Required = true,
 			Type = "string",
-			Required = false,
-			Description = "Anything else you want to print?"
 		})
 		:Build()
 
-	function action:OnRun(source: string?)
-		print("Hello, World!")
+	function action:OnRun(message: string)
+		print("Hello, World")
 
-		if source then
-			print(source)
-		end
+		print(message)
 	end
 end):catch(function(exception)
 	warn("Metrik SDK failed: ", exception)
