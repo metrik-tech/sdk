@@ -1,6 +1,6 @@
 return table.freeze({
 	Broadcasts = "broadcasts",
-	Actions = "action",
+	Actions = "action:run",
 	Moderation = "moderation",
 	Flags = "flags"
 })

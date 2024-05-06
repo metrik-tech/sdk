@@ -71,7 +71,9 @@ function ApiService._QueryServerStartAsync(self: ApiService)
 		["region"] = self.Trace.loc
 	})
 		:andThen(function(request)
-			self:Heartbeat(HEARTBEAT_UPDATE_SECONDS)
+			self.HeartbeatThread = task.delay(HEARTBEAT_UPDATE_SECONDS, function()
+				self:Heartbeat(HEARTBEAT_UPDATE_SECONDS)
+			end)
 
 			self.Reporter:Log(`Server '{self.JobId}' has authenticated with the Metrik API`)
 
@@ -131,13 +133,13 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 		}):andThen(function(response)
 			resolve(response)
 		end):catch(function(response)
-			local decodedJson = HttpService:JSONDecode(response.Body)
+			local success, decodedJson = pcall(HttpService.JSONDecode, HttpService, response.Body)
 			local errorObject = {}
 
 			errorObject.StatusCode = response.StatusCode
 			errorObject.StatusMessage = response.StatusMessage
-			errorObject.BodyCode = decodedJson.code
-			errorObject.BodyMessage = decodedJson.code
+			errorObject.BodyCode = success and decodedJson.code or "Unknown"
+			errorObject.BodyMessage = success and decodedJson.code or "Unknown"
 			errorObject.Errors = {}
 			errorObject.Request = {
 				Url = `https://{ApiPaths.BaseUrl}{apiEndpoint}`,
@@ -150,12 +152,14 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 				Body = HttpService:JSONEncode(data),
 			}
 
-			if decodedJson.issues then
-				for _, issue in decodedJson.issues do
-					table.insert(errorObject.Errors, issue)
+			if decodedJson then
+				if decodedJson.issues then
+					for _, issue in decodedJson.issues do
+						table.insert(errorObject.Errors, issue)
+					end
+				elseif decodedJson.message then
+					table.insert(errorObject.Errors, decodedJson.message)
 				end
-			elseif decodedJson.message then
-				table.insert(errorObject.Errors, decodedJson.message)
 			end
 
 			self.Reporter:Warn(`'{apiMethod}' request failed for endpoint '{apiEndpoint}': %s`, errorObject)
@@ -180,9 +184,15 @@ function ApiService.PostAsync(self: ApiService, apiEndpoint: string, data: { [an
 end
 
 function ApiService.Heartbeat(self: ApiService, nextHeartbeatIn: number?)
+	local playerIdArray = {}
+
+	for _, player in Players:GetPlayers() do
+		table.insert(playerIdArray, player.UserId)
+	end
+
 	self:PostAsync(string.format(ApiPaths.ServerHeartbeat, self.ProjectId), {
 		serverId = self.JobId,
-		playerCount = #Players:GetPlayers(),
+		players = playerIdArray
 	}):await()
 
 	if nextHeartbeatIn then
