@@ -167,9 +167,12 @@ end
 
 function ApiService.GetAsync(self: ApiService, apiEndpoint: string, queries: { [string]: any })
 	local url = apiEndpoint
+	local counter = 0
 
 	for queryName, queryValue in queries do
-		url ..= `?{HttpService:UrlEncode(queryName)}={HttpService:UrlEncode(queryValue)}`
+		url ..= `{counter == 0 and "?" or "&"}{HttpService:UrlEncode(queryName)}={HttpService:UrlEncode(queryValue)}`
+
+		counter += 1
 	end
 
 	return self:RequestAsync("GET", url)
