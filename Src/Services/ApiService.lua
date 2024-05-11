@@ -117,7 +117,7 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 		self.Reporter:Debug(`'{apiMethod}' request made to endpoint '{apiEndpoint}'`)
 
 		if not self.HTTPEnabled then
-			reject(
+			return reject(
 				`HTTP Service Requests failed to process, please ensure that HTTP requests are enabled via game settings!`
 			)
 		end
@@ -164,8 +164,10 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 
 			self.Reporter:Warn(`'{apiMethod}' request failed for endpoint '{apiEndpoint}': %s`, errorObject)
 
-			reject(errorObject)
+			return reject(errorObject)
 		end)
+
+		return
 	end)
 end
 

@@ -9,6 +9,8 @@ return table.freeze({
 	ServerLogBatch = "/projects/%s/log/error/batch",
 
 	RegisterAction = "/projects/%s/actions/register",
+	ReturnAction = "/projects/%s/actions/return",
+	ClaimAction = "/projects/%s/actions/claim",
 
 	GetModerationStatus = "/projects/%s/moderation/status",
 })
