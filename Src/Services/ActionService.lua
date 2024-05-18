@@ -38,12 +38,14 @@ function ActionService.RegisterActionAsync(self: ActionService, action: any)
 		table.insert(requestBody.arguments, argumentBody)
 	end
 
-	ApiService:PostAsync(string.format(
+	local success, result = ApiService:PostAsync(string.format(
 		ApiPaths.RegisterAction,
 		ApiService.ProjectId
-	), requestBody):andThen(function()
-		print("REGISTERED ACTION!")
-	end)
+	), requestBody)
+
+	if not success then
+		self.Reporter:Critical(`Failed to register action: '{action.Name}' - {result}`)
+	end
 end
 
 function ActionService.OnStart(self: ActionService)

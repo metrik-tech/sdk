@@ -13,6 +13,7 @@ local ErrorFormats = require(script.Parent.Data.ErrorFormats)
 local ActionBuilder = require(script.Parent.API.ActionBuilder)
 
 local ApiService = require(script.Parent.Services.ApiService)
+local FlagsService = require(script.Parent.Services.FlagsService)
 
 local ON_INIT_LIFECYCLE_NAME = "OnInit"
 local ON_START_LIFECYCLE_NAME = "OnStart"
@@ -79,6 +80,19 @@ function MetrikSDK.Public.SetProjectId(self: MetrikPublicAPI, projectId: string)
 	)
 
 	ApiService:SetProjectId(projectId)
+end
+
+--[=[
+	...
+
+	@method EvaluateFlag
+	@within MetrikSDK.Server
+
+	@return ()
+]=]
+--
+function MetrikSDK.Public.GetFlag(self: MetrikPublicAPI, flagName: string)
+	return FlagsService:EvaluateFlag(flagName)
 end
 
 --[=[
