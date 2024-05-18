@@ -7,7 +7,6 @@ local Console = require(script.Parent.Parent.Packages.Console)
 local Promise = require(script.Parent.Parent.Packages.Promise)
 
 local ApiPaths = require(script.Parent.Parent.Data.ApiPaths)
-local Api = require(script.Parent.Parent.Enums.Api)
 local ServerType = require(script.Parent.Parent.Enums.ServerType)
 
 local HEARTBEAT_UPDATE_SECONDS = 60 * 10 -- send server heartbeat every 10 minutes.
@@ -30,7 +29,7 @@ ApiService.Authenticated = State.new(false)
 
 function ApiService._QueryTraceAsync(self: ApiService)
 	return self:RawRequestAsync({
-		Url = `https://{ApiPaths[Api.TraceUrl]}`,
+		Url = `https://{ApiPaths.TraceUrl}`,
 		Method = "GET"
 	})
 		:andThen(function(response)
@@ -66,7 +65,7 @@ function ApiService._QueryServerStartAsync(self: ApiService)
 		serverType = ServerType.Reserved
 	end
 
-	return self:PostAsync(Api.ServerStart, {
+	return self:PostAsync(string.format(ApiPaths.ServerStart, self.ProjectId), {
 		["serverId"] = self.JobId,
 		["placeVersion"] = game.PlaceVersion,
 		["type"] = string.upper(serverType),
@@ -84,7 +83,7 @@ function ApiService._QueryServerStartAsync(self: ApiService)
 			game:BindToClose(function()
 				self:StopHeartbeat()
 
-				self:PostAsync(Api.ServerEnd, {
+				self:PostAsync(string.format(ApiPaths.ServerEnd, self.ProjectId), {
 					serverId = self.JobId,
 				})
 			end)
@@ -114,9 +113,9 @@ function ApiService.RawRequestAsync(self: ApiService, data: { [any]: any })
 	end)
 end
 
-function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", api: string, data: { [any]: any })
+function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", apiEndpoint: string, data: { [any]: any }?)
 	return Promise.new(function(resolve, reject)
-		self.Reporter:Debug(`'{apiMethod}' request made to API '{api}'`)
+		self.Reporter:Debug(`'{apiMethod}' request made to endpoint '{apiEndpoint}'`)
 
 		if not self.HTTPEnabled then
 			reject(
@@ -125,13 +124,13 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 		end
 
 		self:RawRequestAsync({
-			Url = `https://{ApiPaths[Api.BaseUrl]}{string.format(ApiPaths[api], self.ProjectId)}`,
+			Url = `https://{ApiPaths.BaseUrl}{apiEndpoint}`,
 			Method = apiMethod,
 			Headers = {
 				["x-api-key"] = self.AuthenticationToken,
 				["content-type"] = "application/json",
 			},
-			Body = HttpService:JSONEncode(data),
+			Body = data and HttpService:JSONEncode(data) or nil,
 		}):andThen(function(response)
 			resolve(response)
 		end):catch(function(response)
@@ -144,7 +143,7 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 			errorObject.BodyMessage = decodedJson.code
 			errorObject.Errors = {}
 			errorObject.Request = {
-				Url = `https://{ApiPaths[Api.BaseUrl]}{string.format(ApiPaths[api], self.ProjectId)}`,
+				Url = `https://{ApiPaths.BaseUrl}{apiEndpoint}`,
 				Method = apiMethod,
 				Headers = {
 					["x-api-key"] = string.sub(self.AuthenticationToken, 0, #self.AuthenticationToken - 10)
@@ -162,19 +161,28 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 				table.insert(errorObject.Errors, decodedJson.message)
 			end
 
-			self.Reporter:Warn(`'{apiMethod}' request failed for API '{api}': %s`, errorObject)
+			self.Reporter:Warn(`'{apiMethod}' request failed for endpoint '{apiEndpoint}': %s`, errorObject)
 
 			reject(errorObject)
 		end)
 	end)
 end
 
-function ApiService.GetAsync(self: ApiService, api: string, data: { [any]: any })
-	return self:RequestAsync("GET", api, data)
+function ApiService.GetAsync(self: ApiService, apiEndpoint: string, queries: { [string]: any })
+	local url = apiEndpoint
+	local counter = 0
+
+	for queryName, queryValue in queries do
+		url ..= `{counter == 0 and "?" or "&"}{HttpService:UrlEncode(queryName)}={HttpService:UrlEncode(queryValue)}`
+
+		counter += 1
+	end
+
+	return self:RequestAsync("GET", url)
 end
 
-function ApiService.PostAsync(self: ApiService, api: string, data: { [any]: any })
-	return self:RequestAsync("POST", api, data)
+function ApiService.PostAsync(self: ApiService, apiEndpoint: string, data: { [any]: any })
+	return self:RequestAsync("POST", apiEndpoint, data)
 end
 
 function ApiService.Heartbeat(self: ApiService, nextHeartbeatIn: number?)
@@ -184,7 +192,7 @@ function ApiService.Heartbeat(self: ApiService, nextHeartbeatIn: number?)
 		table.insert(playerArray, player.UserId)
 	end
 
-	self:PostAsync(Api.ServerHeartbeat, {
+	self:PostAsync(ApiPaths.ServerHeartbeat, {
 		serverId = self.JobId,
 		players = playerArray,
 	}):await()

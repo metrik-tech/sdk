@@ -6,6 +6,9 @@ return {
 		LightBlack = Color3.fromRGB(20, 20, 20),
 		White = Color3.fromRGB(255, 255, 255),
 		Pastel = Color3.fromRGB(236, 232, 216),
+
+		Red = Color3.fromRGB(255, 91, 91),
+		Orange = Color3.fromRGB(255, 114, 71)
 	},
 
 	Padding = 6,
