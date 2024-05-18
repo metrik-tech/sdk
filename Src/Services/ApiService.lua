@@ -9,7 +9,8 @@ local Promise = require(script.Parent.Parent.Packages.Promise)
 local ApiPaths = require(script.Parent.Parent.Data.ApiPaths)
 local ServerType = require(script.Parent.Parent.Enums.ServerType)
 
-local HEARTBEAT_UPDATE_SECONDS = 60 * 30 -- send server heartbeat every 30 minutes.
+local HEARTBEAT_UPDATE_SECONDS = 60 * 10 -- send server heartbeat every 10 minutes.
+local DELAY_BEFORE_FIRST_HEARTBEAT = 120
 
 local ApiService = {}
 
@@ -71,7 +72,9 @@ function ApiService._QueryServerStartAsync(self: ApiService)
 		["region"] = self.Trace.loc
 	})
 		:andThen(function(request)
-			self:Heartbeat(HEARTBEAT_UPDATE_SECONDS)
+			task.delay(DELAY_BEFORE_FIRST_HEARTBEAT, function()
+				self:Heartbeat(HEARTBEAT_UPDATE_SECONDS)
+			end)
 
 			self.Reporter:Log(`Server '{self.JobId}' has authenticated with the Metrik API`)
 
@@ -183,9 +186,15 @@ function ApiService.PostAsync(self: ApiService, apiEndpoint: string, data: { [an
 end
 
 function ApiService.Heartbeat(self: ApiService, nextHeartbeatIn: number?)
-	self:PostAsync(string.format(ApiPaths.ServerHeartbeat, self.ProjectId), {
+	local playerArray = {}
+
+	for _, player in Players:GetPlayers() do
+		table.insert(playerArray, player.UserId)
+	end
+
+	self:PostAsync(ApiPaths.ServerHeartbeat, {
 		serverId = self.JobId,
-		playerCount = #Players:GetPlayers(),
+		players = playerArray,
 	}):await()
 
 	if nextHeartbeatIn then
