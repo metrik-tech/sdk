@@ -6,7 +6,7 @@ return table.freeze({
 
 	[Api.ServerStart] = "/projects/%s/server/start",
 	[Api.ServerEnd] = "/projects/%s/server/stop",
-	[Api.ServerHeartbeat] = "/projects/%S/server/heartbeat",
+	[Api.ServerHeartbeat] = "/projects/%s/server/heartbeat",
 
 	[Api.ServerLogBatch] = "/projects/%s/log/error/batch",
 
