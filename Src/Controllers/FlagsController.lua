@@ -1,4 +1,5 @@
 local HttpService = game:GetService("HttpService")
+local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 
 local Console = require(script.Parent.Parent.Packages.Console)
@@ -6,8 +7,9 @@ local Sift = require(script.Parent.Parent.Packages.Sift)
 
 local Network = require(script.Parent.Parent.Network.Client)
 
-local FlagOperator = require(script.Parent.Parent.Enums.FlagOperator)
-local FlagOperand = require(script.Parent.Parent.Enums.FlagOperand)
+local RuleOperator = require(script.Parent.Parent.Enums.RuleOperator)
+local RuleType = require(script.Parent.Parent.Enums.RuleType)
+local ServerType = require(script.Parent.Parent.Enums.ServerType)
 
 local FlagsController = { }
 
@@ -55,49 +57,68 @@ function FlagsController.OnStart(self: FlagsController)
 end
 
 function FlagsController.EvaluateFlagRule(self: FlagsController, ruleObject)
-	local _type = ruleObject.type -- todo: what is this?
-
 	local parameter = ruleObject.param
-
+	
+	local type = ruleObject.type
 	local value = ruleObject.value
 	local operator = ruleObject.operator
 	local operand = ruleObject.operand
 
 	local dynamicObject
 
-	if operand == FlagOperand.PlayerCount then
+	if type == RuleType.PlayerCount then
 		dynamicObject = #Players:GetPlayers()
-	elseif operand == FlagOperand.PlayerList then
+	elseif type == RuleType.PlayerList then
 		dynamicObject = Players:GetPlayers()
-	elseif operand == FlagOperand.PlayerRankInGroup then
+	elseif type == RuleType.Region then
+		self.Reporter:Warn(`Attempted to fetch dynamic flag with invalid context, operand '{operand}' is only avaliable on the server.`)
+
+		return false
+	elseif type == RuleType.PlaceVersion then
+		dynamicObject = game.PlaceVersion
+	elseif type == RuleType.ServerType then
+		dynamicObject = ServerType.Public
+
+		if RunService:IsStudio() then
+			dynamicObject = ServerType.Reserved
+		elseif game.VIPServerOwnerId ~= 0 then
+			dynamicObject = ServerType.Private
+		elseif game.VIPServerId ~= "" then
+			dynamicObject = ServerType.Reserved
+		end
+	elseif type == RuleType.PlayerNotInGroup then
+		dynamicObject = not Players.LocalPlayer:IsInGroup(parameter)
+	elseif type == RuleType.PlayerInGroup then
+		dynamicObject = Players.LocalPlayer:IsInGroup(parameter)
+	elseif type == RuleType.PlayerRankInGroup then
 		dynamicObject = Players.LocalPlayer:GetRankInGroup(parameter)
-	elseif operand == FlagOperand.PlayerRoleInGroup then
+	elseif type == RuleType.PlayerRoleInGroup then
 		dynamicObject = Players.LocalPlayer:GetRoleInGroup(parameter)
 	end
 
-	if operator == FlagOperator.Equals then
+	if operator == RuleOperator.Equals then
 		return dynamicObject == value
-	elseif operator == FlagOperator.Contains then
+	elseif operator == RuleOperator.Contains then
 		if Sift.Array.is(dynamicObject) then
 			return table.find(dynamicObject, value) ~= nil
 		else
 			return dynamicObject[value] ~= nil
 		end
-	elseif operator == FlagOperator.GreaterThan then
+	elseif operator == RuleOperator.GreaterThan then
 		return value > dynamicObject
-	elseif operator == FlagOperator.GreaterThanOrEquals then
+	elseif operator == RuleOperator.GreaterThanOrEquals then
 		return value >= dynamicObject
-	elseif operator == FlagOperator.LessThan then
+	elseif operator == RuleOperator.LessThan then
 		return value < dynamicObject
-	elseif operator == FlagOperator.LessThanOrEquals then
+	elseif operator == RuleOperator.LessThanOrEquals then
 		return value <= dynamicObject
-	elseif operator == FlagOperator.NotContains then
+	elseif operator == RuleOperator.NotContains then
 		if Sift.Array.is(dynamicObject) then
 			return table.find(dynamicObject, value) == nil
 		else
 			return dynamicObject[value] == nil
 		end
-	elseif operator == FlagOperator.NotEquals then
+	elseif operator == RuleOperator.NotEquals then
 		return dynamicObject ~= value
 	else
 		self.Reporter:Error(`Unknown rule operator: '{operator}'`)

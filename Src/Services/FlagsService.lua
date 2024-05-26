@@ -9,8 +9,8 @@ local Sift = require(script.Parent.Parent.Packages.Sift)
 
 local ApiPaths = require(script.Parent.Parent.Data.ApiPaths)
 
-local FlagOperator = require(script.Parent.Parent.Enums.FlagOperator)
-local FlagOperand = require(script.Parent.Parent.Enums.FlagOperand)
+local RuleOperator = require(script.Parent.Parent.Enums.RuleOperator)
+local RuleType = require(script.Parent.Parent.Enums.RuleType)
 
 local ApiService = require(script.Parent.ApiService)
 
@@ -68,52 +68,67 @@ function FlagsService._PollExistingFlags(self: FlagsService)
 end
 
 function FlagsService.EvaluateFlagRule(self: FlagsService, ruleObject)
-	local _type = ruleObject.type -- todo: what is this?
-	local _parameter = ruleObject.param
-
+	-- parameter isn't used on the Server.
+	-- local parameter = ruleObject.param
+	
+	local type = ruleObject.type
 	local value = ruleObject.value
 	local operator = ruleObject.operator
 	local operand = ruleObject.operand
 
 	local dynamicObject
 
-	if operand == FlagOperand.PlayerCount then
+	if type == RuleType.PlayerCount then
 		dynamicObject = #Players:GetPlayers()
-	elseif operand == FlagOperand.PlayerList then
+	elseif type == RuleType.PlayerList then
 		dynamicObject = Players:GetPlayers()
-	elseif operand == FlagOperand.PlayerRankInGroup then
+	elseif type == RuleType.Region then
+		dynamicObject = ApiService.Trace.loc
+	elseif type == RuleType.PlaceVersion then
+		dynamicObject = game.PlaceVersion
+	elseif type == RuleType.ServerType then
+		dynamicObject = ApiService.ServerType
+	elseif type == RuleType.PlayerNotInGroup then
 		self.Reporter:Warn(`Attempted to fetch dynamic flag with invalid context, operand '{operand}' is only avaliable on the client.`)
 
 		return false
-	elseif operand == FlagOperand.PlayerRoleInGroup then
+	elseif type == RuleType.PlayerInGroup then
+		self.Reporter:Warn(`Attempted to fetch dynamic flag with invalid context, operand '{operand}' is only avaliable on the client.`)
+
+		return false
+	elseif type == RuleType.PlayerRankInGroup then
+		self.Reporter:Warn(`Attempted to fetch dynamic flag with invalid context, operand '{operand}' is only avaliable on the client.`)
+
+		return false
+	elseif type == RuleType.PlayerRoleInGroup then
 		self.Reporter:Warn(`Attempted to fetch dynamic flag with invalid context, operand '{operand}' is only avaliable on the client.`)
 
 		return false
 	end
 
-	if operator == FlagOperator.Equals then
+	if operator == RuleOperator.Equals then
 		return dynamicObject == value
-	elseif operator == FlagOperator.Contains then
+	elseif operator == RuleOperator.Contains then
 		if Sift.Array.is(dynamicObject) then
 			return table.find(dynamicObject, value) ~= nil
 		else
 			return dynamicObject[value] ~= nil
 		end
-	elseif operator == FlagOperator.GreaterThan then
+	elseif operator == RuleOperator.GreaterThan then
 		return value > dynamicObject
-	elseif operator == FlagOperator.GreaterThanOrEquals then
+	elseif operator == RuleOperator.GreaterThanOrEquals then
 		return value >= dynamicObject
-	elseif operator == FlagOperator.LessThan then
+	elseif operator == RuleOperator.LessThan then
 		return value < dynamicObject
-	elseif operator == FlagOperator.LessThanOrEquals then
+	elseif operator == RuleOperator.LessThanOrEquals then
 		return value <= dynamicObject
-	elseif operator == FlagOperator.NotContains then
+	elseif operator == RuleOperator.NotContains then
 		if Sift.Array.is(dynamicObject) then
 			return table.find(dynamicObject, value) == nil
 		else
 			return dynamicObject[value] == nil
 		end
-	elseif operator == FlagOperator.NotEquals then
+	elseif operator == RuleOperator.NotEquals then
 		return dynamicObject ~= value
 	else
 		self.Reporter:Error(`Unknown rule operator: '{operator}'`)
