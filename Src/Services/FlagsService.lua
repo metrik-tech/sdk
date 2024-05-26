@@ -81,6 +81,14 @@ function FlagsService.EvaluateFlagRule(self: FlagsService, ruleObject)
 		dynamicObject = #Players:GetPlayers()
 	elseif operand == FlagOperand.PlayerList then
 		dynamicObject = Players:GetPlayers()
+	elseif operand == FlagOperand.PlayerRankInGroup then
+		self.Reporter:Warn(`Attempted to fetch dynamic flag with invalid context, operand '{operand}' is only avaliable on the client.`)
+
+		return false
+	elseif operand == FlagOperand.PlayerRoleInGroup then
+		self.Reporter:Warn(`Attempted to fetch dynamic flag with invalid context, operand '{operand}' is only avaliable on the client.`)
+
+		return false
 	end
 
 	if operator == FlagOperator.Equals then
