@@ -2,11 +2,15 @@
 	
 ]]
 local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
 
 local Console = require(script.Parent.Parent.Packages.Console)
 local Sift = require(script.Parent.Parent.Packages.Sift)
 
 local ApiPaths = require(script.Parent.Parent.Data.ApiPaths)
+
+local FlagOperator = require(script.Parent.Parent.Enums.FlagOperator)
+local FlagOperand = require(script.Parent.Parent.Enums.FlagOperand)
 
 local ApiService = require(script.Parent.ApiService)
 
@@ -63,17 +67,72 @@ function FlagsService._PollExistingFlags(self: FlagsService)
 	self.FlagsLoaded = true
 end
 
+function FlagsService.EvaluateFlagRule(self: FlagsService, ruleObject)
+	local _type = ruleObject.type -- todo: what is this?
+	local _parameter = ruleObject.param
+
+	local value = ruleObject.value
+	local operator = ruleObject.operator
+	local operand = ruleObject.operand
+
+	local dynamicObject
+
+	if operand == FlagOperand.PlayerCount then
+		dynamicObject = #Players:GetPlayers()
+	elseif operand == FlagOperand.PlayerList then
+		dynamicObject = Players:GetPlayers()
+	end
+
+	if operator == FlagOperator.Equals then
+		return dynamicObject == value
+	elseif operator == FlagOperator.Contains then
+		if Sift.Array.is(dynamicObject) then
+			return table.find(dynamicObject, value) ~= nil
+		else
+			return dynamicObject[value] ~= nil
+		end
+	elseif operator == FlagOperator.GreaterThan then
+		return value > dynamicObject
+	elseif operator == FlagOperator.GreaterThanOrEquals then
+		return value >= dynamicObject
+	elseif operator == FlagOperator.LessThan then
+		return value < dynamicObject
+	elseif operator == FlagOperator.LessThanOrEquals then
+		return value <= dynamicObject
+	elseif operator == FlagOperator.NotContains then
+		if Sift.Array.is(dynamicObject) then
+			return table.find(dynamicObject, value) == nil
+		else
+			return dynamicObject[value] == nil
+		end
+	elseif operator == FlagOperator.NotEquals then
+		return dynamicObject ~= value
+	else
+		self.Reporter:Error(`Unknown rule operator: '{operator}'`)
+
+		return false
+	end
+end
+
 function FlagsService.EvaluateDynamicFlag(self: FlagsService, flagName: string)
-	local index = Sift.Array.findWhere(self.StaticFlags, function(object)
+	local index = Sift.Array.findWhere(self.DynamicFlags, function(object)
 		return object.Name == flagName or object.Id == flagName
 	end)
 
-	local flagObject = self.StaticFlags[index]
+	local flagObject = self.DynamicFlags[index]
 
 	if flagObject then
+		local flagEnabled = true
 
+		for _, ruleObject in flagObject.Rules do
+			if not self:EvaluateFlagRule(ruleObject) then
+				flagEnabled = false
+				
+				break
+			end
+		end
 
-		return 0 -- todo: add dynamic flag support
+		return flagEnabled and flagObject.Value or nil
 	else
 		self.Reporter:Warn(`Failed to query flag '{flagName}' - returning 'nil'!`)
 
