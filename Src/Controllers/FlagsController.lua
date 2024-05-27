@@ -10,6 +10,7 @@ local Network = require(script.Parent.Parent.Network.Client)
 local RuleOperator = require(script.Parent.Parent.Enums.RuleOperator)
 local RuleType = require(script.Parent.Parent.Enums.RuleType)
 local ServerType = require(script.Parent.Parent.Enums.ServerType)
+local RuleBehaviour = require(script.Parent.Parent.Enums.RuleBehaviour)
 
 local FlagsController = { }
 
@@ -60,7 +61,6 @@ function FlagsController.EvaluateFlagRule(self: FlagsController, ruleObject)
 	local parameter = ruleObject.param
 	
 	local type = ruleObject.type
-	local value = ruleObject.value
 	local operator = ruleObject.operator
 	local operand = ruleObject.operand
 
@@ -97,29 +97,29 @@ function FlagsController.EvaluateFlagRule(self: FlagsController, ruleObject)
 	end
 
 	if operator == RuleOperator.Equals then
-		return dynamicObject == value
+		return dynamicObject == operand
 	elseif operator == RuleOperator.Contains then
 		if Sift.Array.is(dynamicObject) then
-			return table.find(dynamicObject, value) ~= nil
+			return table.find(dynamicObject, operand) ~= nil
 		else
-			return dynamicObject[value] ~= nil
+			return dynamicObject[operand] ~= nil
 		end
 	elseif operator == RuleOperator.GreaterThan then
-		return value > dynamicObject
+		return operand > dynamicObject
 	elseif operator == RuleOperator.GreaterThanOrEquals then
-		return value >= dynamicObject
+		return operand >= dynamicObject
 	elseif operator == RuleOperator.LessThan then
-		return value < dynamicObject
+		return operand < dynamicObject
 	elseif operator == RuleOperator.LessThanOrEquals then
-		return value <= dynamicObject
+		return operand <= dynamicObject
 	elseif operator == RuleOperator.NotContains then
 		if Sift.Array.is(dynamicObject) then
-			return table.find(dynamicObject, value) == nil
+			return table.find(dynamicObject, operand) == nil
 		else
-			return dynamicObject[value] == nil
+			return dynamicObject[operand] == nil
 		end
 	elseif operator == RuleOperator.NotEquals then
-		return dynamicObject ~= value
+		return dynamicObject ~= operand
 	else
 		self.Reporter:Error(`Unknown rule operator: '{operator}'`)
 
@@ -136,16 +136,43 @@ function FlagsController.EvaluateDynamicFlag(self: FlagsController, flagName: st
 
 	if flagObject then
 		local flagEnabled = true
+		local flagStatuses = {}
 
 		for _, ruleObject in flagObject.Rules do
-			if not self:EvaluateFlagRule(ruleObject) then
+			table.insert(flagStatuses, self:EvaluateFlagRule(ruleObject))
+		end
+
+		if flagObject.Behaviour == RuleBehaviour.All then
+			for _, status in flagStatuses do
+				if not status then
+					flagEnabled = false
+					
+					break
+				end
+			end
+		elseif flagObject.Behaviour == RuleBehaviour.Some then
+			local hasFlagEnabled
+
+			for _, status in flagStatuses do
+				if status then
+					hasFlagEnabled = true
+				end
+			end
+
+			if not hasFlagEnabled then
 				flagEnabled = false
-				
-				break
+			end
+		elseif flagObject.Behaviour == RuleBehaviour.None then
+			for _, status in flagStatuses do
+				if status then
+					flagEnabled = false
+					
+					break
+				end
 			end
 		end
 
-		return flagEnabled and flagObject.Value or nil
+		return flagEnabled and flagObject.Value or false
 	else
 		self.Reporter:Warn(`Failed to query flag '{flagName}' - returning 'nil'!`)
 

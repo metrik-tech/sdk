@@ -11,10 +11,13 @@ local ApiPaths = require(script.Parent.Parent.Data.ApiPaths)
 
 local RuleOperator = require(script.Parent.Parent.Enums.RuleOperator)
 local RuleType = require(script.Parent.Parent.Enums.RuleType)
+local RuleBehaviour = require(script.Parent.Parent.Enums.RuleBehaviour)
 
 local ApiService = require(script.Parent.ApiService)
 
 local Network = require(script.Parent.Parent.Network.Server)
+
+local MessageReceiveService = require(script.Parent.MessageReceiveService)
 
 local FlagsService = {}
 
@@ -48,10 +51,11 @@ function FlagsService._PollExistingFlags(self: FlagsService)
 			})
 		end
 
-		table.insert(self.StaticFlags, {
+		table.insert(self.DynamicFlags, {
 			Id = flagObject.id,
 			Name = flagObject.name,
 			Value = flagObject.value,
+			Behaviour = flagObject.ruleBehaviour,
 			Rules = rules,
 		})
 	end
@@ -70,9 +74,8 @@ end
 function FlagsService.EvaluateFlagRule(self: FlagsService, ruleObject)
 	-- parameter isn't used on the Server.
 	-- local parameter = ruleObject.param
-	
+
 	local type = ruleObject.type
-	local value = ruleObject.value
 	local operator = ruleObject.operator
 	local operand = ruleObject.operand
 
@@ -89,47 +92,47 @@ function FlagsService.EvaluateFlagRule(self: FlagsService, ruleObject)
 	elseif type == RuleType.ServerType then
 		dynamicObject = ApiService.ServerType
 	elseif type == RuleType.PlayerNotInGroup then
-		self.Reporter:Warn(`Attempted to fetch dynamic flag with invalid context, operand '{operand}' is only avaliable on the client.`)
+		self.Reporter:Warn(`Attempted to fetch dynamic flag with invalid context, type '{type}' is only avaliable on the client.`)
 
 		return false
 	elseif type == RuleType.PlayerInGroup then
-		self.Reporter:Warn(`Attempted to fetch dynamic flag with invalid context, operand '{operand}' is only avaliable on the client.`)
+		self.Reporter:Warn(`Attempted to fetch dynamic flag with invalid context, type '{type}' is only avaliable on the client.`)
 
 		return false
 	elseif type == RuleType.PlayerRankInGroup then
-		self.Reporter:Warn(`Attempted to fetch dynamic flag with invalid context, operand '{operand}' is only avaliable on the client.`)
+		self.Reporter:Warn(`Attempted to fetch dynamic flag with invalid context, type '{type}' is only avaliable on the client.`)
 
 		return false
 	elseif type == RuleType.PlayerRoleInGroup then
-		self.Reporter:Warn(`Attempted to fetch dynamic flag with invalid context, operand '{operand}' is only avaliable on the client.`)
+		self.Reporter:Warn(`Attempted to fetch dynamic flag with invalid context, type '{type}' is only avaliable on the client.`)
 
 		return false
 	end
 
 	if operator == RuleOperator.Equals then
-		return dynamicObject == value
+		return dynamicObject == operand
 	elseif operator == RuleOperator.Contains then
 		if Sift.Array.is(dynamicObject) then
-			return table.find(dynamicObject, value) ~= nil
+			return table.find(dynamicObject, operand) ~= nil
 		else
-			return dynamicObject[value] ~= nil
+			return dynamicObject[operand] ~= nil
 		end
 	elseif operator == RuleOperator.GreaterThan then
-		return value > dynamicObject
+		return operand > dynamicObject
 	elseif operator == RuleOperator.GreaterThanOrEquals then
-		return value >= dynamicObject
+		return operand >= dynamicObject
 	elseif operator == RuleOperator.LessThan then
-		return value < dynamicObject
+		return operand < dynamicObject
 	elseif operator == RuleOperator.LessThanOrEquals then
-		return value <= dynamicObject
+		return operand <= dynamicObject
 	elseif operator == RuleOperator.NotContains then
 		if Sift.Array.is(dynamicObject) then
-			return table.find(dynamicObject, value) == nil
+			return table.find(dynamicObject, operand) == nil
 		else
-			return dynamicObject[value] == nil
+			return dynamicObject[operand] == nil
 		end
 	elseif operator == RuleOperator.NotEquals then
-		return dynamicObject ~= value
+		return dynamicObject ~= operand
 	else
 		self.Reporter:Error(`Unknown rule operator: '{operator}'`)
 
@@ -146,16 +149,43 @@ function FlagsService.EvaluateDynamicFlag(self: FlagsService, flagName: string)
 
 	if flagObject then
 		local flagEnabled = true
+		local flagStatuses = {}
 
 		for _, ruleObject in flagObject.Rules do
-			if not self:EvaluateFlagRule(ruleObject) then
+			table.insert(flagStatuses, self:EvaluateFlagRule(ruleObject))
+		end
+
+		if flagObject.Behaviour == RuleBehaviour.All then
+			for _, status in flagStatuses do
+				if not status then
+					flagEnabled = false
+					
+					break
+				end
+			end
+		elseif flagObject.Behaviour == RuleBehaviour.Some then
+			local hasFlagEnabled
+
+			for _, status in flagStatuses do
+				if status then
+					hasFlagEnabled = true
+				end
+			end
+
+			if not hasFlagEnabled then
 				flagEnabled = false
-				
-				break
+			end
+		elseif flagObject.Behaviour == RuleBehaviour.None then
+			for _, status in flagStatuses do
+				if status then
+					flagEnabled = false
+					
+					break
+				end
 			end
 		end
 
-		return flagEnabled and flagObject.Value or nil
+		return flagEnabled and flagObject.Value or false
 	else
 		self.Reporter:Warn(`Failed to query flag '{flagName}' - returning 'nil'!`)
 
@@ -221,12 +251,17 @@ function FlagsService.OnStart(self: FlagsService)
 
 		return payload
 	end)
+
+	MessageReceiveService.OnFlags:Connect(function(message: ActionPacket)
+		print(message)
+	end)
 end
 
 export type FlagsService = typeof(FlagsService)
 export type ActionPacket = {
 	id: string,
-	message: string,
+	name: string,
+	value: any,
 	type: string
 }
 
