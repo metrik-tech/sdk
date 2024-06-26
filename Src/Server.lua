@@ -2,6 +2,8 @@
 	Metrik SDK - https://github.com/metrik-tech/sdk
 ]]
 
+local HttpService = game:GetService("HttpService")
+
 local Runtime = require(script.Parent.Packages.Runtime)
 local Promise = require(script.Parent.Packages.Promise)
 local Console = require(script.Parent.Packages.Console)
@@ -9,6 +11,7 @@ local Console = require(script.Parent.Packages.Console)
 local Error = require(script.Parent.Enums.Error)
 
 local ErrorFormats = require(script.Parent.Data.ErrorFormats)
+local ApiPaths = require(script.Parent.Data.ApiPaths)
 
 local ActionBuilder = require(script.Parent.API.ActionBuilder)
 
@@ -43,6 +46,29 @@ MetrikSDK.Public.ActionBuilder = ActionBuilder
 
 function MetrikSDK.Private.FromError(_: MetrikPrivateAPI, errorEnum: string, ...: string)
 	return string.format(ErrorFormats[errorEnum], ...)
+end
+
+--[=[
+	...
+
+	@method IsServerUpToDate
+	@within MetrikSDK.Server
+
+	@return ()
+]=]
+--
+function MetrikSDK.Public.IsServerUpToDate(self: MetrikPublicAPI)
+	local success, response = ApiService:GetAsync(string.format(ApiPaths.GetLatestPlaceVersion, ApiService.ProjectId), { }):await()
+
+	if not success or not response.Success then
+		-- fail gracefully
+		
+		return true
+	end
+	
+	local body = HttpService:JSONDecode(response.Body)
+
+	return body.latest == game.PlaceVersion
 end
 
 --[=[
