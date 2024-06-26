@@ -13,6 +13,8 @@ local ErrorFormats = require(script.Parent.Data.ErrorFormats)
 local ActionBuilder = require(script.Parent.API.ActionBuilder)
 
 local ApiService = require(script.Parent.Services.ApiService)
+local BreadcrumbService = require(script.Parent.Services.BreadcrumbService)
+local ContextService = require(script.Parent.Services.ContextService)
 
 local ON_INIT_LIFECYCLE_NAME = "OnInit"
 local ON_START_LIFECYCLE_NAME = "OnStart"
@@ -43,6 +45,32 @@ MetrikSDK.Public.ActionBuilder = ActionBuilder
 
 function MetrikSDK.Private.FromError(_: MetrikPrivateAPI, errorEnum: string, ...: string)
 	return string.format(ErrorFormats[errorEnum], ...)
+end
+
+--[=[
+	...
+
+	@method CreateBreadcrumb
+	@within MetrikSDK.Server
+
+	@return ()
+]=]
+--
+function MetrikSDK.Public.CreateBreadcrumb(self: MetrikPublicAPI, message: string)
+	BreadcrumbService:CreateBreadcrumbFor(debug.info(2, "s"), message)
+end
+
+--[=[
+	...
+
+	@method SetContext
+	@within MetrikSDK.Server
+
+	@return ()
+]=]
+--
+function MetrikSDK.Public.SetContext(self: MetrikPublicAPI, context: { [string]: any })
+	ContextService:CreateContextFor(debug.info(2, "s"), context)
 end
 
 --[=[
