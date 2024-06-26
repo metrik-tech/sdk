@@ -2,6 +2,7 @@
 	
 ]]
 
+local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 
 local Console = require(script.Parent.Parent.Packages.Console)
@@ -137,6 +138,8 @@ function ActionService.OnStart(self: ActionService)
 						or argumentData.Type == ArgumentType.Boolean
 					then
 						argumentValue = serverArgumentData.value
+					elseif argumentData.Type == ArgumentType.Player then
+						argumentValue = Players:GetPlayerByUserId(serverArgumentData.value)
 					end
 
 					table.insert(sanitizedArguments, argumentValue)
