@@ -72,42 +72,6 @@ function MetrikSDK.Public.IsServerUpToDate(self: MetrikPublicAPI)
 end
 
 --[=[
-	...
-
-	@method SetAuthenticationToken
-	@within MetrikSDK.Server
-
-	@return ()
-]=]
---
-function MetrikSDK.Public.SetAuthenticationToken(self: MetrikPublicAPI, authenticationToken: string)
-	self.Private.Reporter:Assert(
-		not self.Private.IsInitialized,
-		self.Private:FromError(Error.ExpectedCallAfterCall, "Metrik:SetAuthenticationToken", "Metrik:InitializeAsync")
-	)
-
-	ApiService:SetAuthenticationToken(authenticationToken)
-end
-
---[=[
-	...
-
-	@method SetProjectId
-	@within MetrikSDK.Server
-
-	@return ()
-]=]
---
-function MetrikSDK.Public.SetProjectId(self: MetrikPublicAPI, projectId: string)
-	self.Private.Reporter:Assert(
-		not self.Private.IsInitialized,
-		self.Private:FromError(Error.ExpectedCallAfterCall, "Metrik:SetProjectId", "Metrik:InitializeAsync")
-	)
-
-	ApiService:SetProjectId(projectId)
-end
-
---[=[
 	Start the Metrik SDK, once this function has been called, internal Metrik Services and Controllers should come online and start to respond and
 		handle Metrik backend calls made to the current Roblox server.
 
@@ -117,13 +81,20 @@ end
 	:::
 
 	@method InitializeAsync
+	@param settings { projectId: string, authenticationSecret: Secret }
 	@within MetrikSDK.Server
 
 	@return Promise<()>
 ]=]
 --
-function MetrikSDK.Public.InitializeAsync(self: MetrikPublicAPI)
+function MetrikSDK.Public.InitializeAsync(self: MetrikPublicAPI, settings: {
+	projectId: string,
+	authenticationSecret: Secret
+})
 	return Promise.new(function(resolve, reject)
+		ApiService:SetProjectId(settings.projectId)
+		ApiService:SetAuthenticationSecret(settings.authenticationSecret)
+
 		if self.Private.IsInitialized then
 			return reject(self.Private:FromError(Error.AlreadyInitializedError))
 		end

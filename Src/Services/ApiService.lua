@@ -20,8 +20,8 @@ ApiService.Reporter = Console.new(`{script.Name}`)
 ApiService.HTTPEnabled = true
 ApiService.JobId = game.JobId ~= "" and game.JobId or HttpService:GenerateGUID(false)
 
-ApiService.ProjectId = ""
-ApiService.AuthenticationToken = ""
+ApiService.AuthenticationSecret = (nil :: any) :: Secret
+ApiService.ProjectId = (nil :: any) :: string
 
 ApiService.Trace = {}
 
@@ -128,7 +128,7 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 			Url = `https://{ApiPaths.BaseUrl}{apiEndpoint}`,
 			Method = apiMethod,
 			Headers = {
-				["x-api-key"] = self.AuthenticationToken,
+				["x-api-key"] = self.AuthenticationSecret,
 				["content-type"] = "application/json",
 			},
 			Body = data and HttpService:JSONEncode(data) or nil,
@@ -147,8 +147,7 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 				Url = `https://{ApiPaths.BaseUrl}{apiEndpoint}`,
 				Method = apiMethod,
 				Headers = {
-					["x-api-key"] = string.sub(self.AuthenticationToken, 0, #self.AuthenticationToken - 10)
-						.. string.rep(`*`, 10),
+					["x-api-key"] = self.AuthenticationSecret,
 					["content-type"] = "application/json",
 				},
 				Body = HttpService:JSONEncode(data),
@@ -217,8 +216,8 @@ function ApiService.SetProjectId(self: ApiService, projectId: string)
 	self.ProjectId = projectId
 end
 
-function ApiService.SetAuthenticationToken(self: ApiService, authenticationToken: string)
-	self.AuthenticationToken = authenticationToken
+function ApiService.SetAuthenticationSecret(self: ApiService, authenticationSecret: Secret)
+	self.AuthenticationSecret = authenticationSecret
 end
 
 function ApiService.OnStart(self: ApiService)
