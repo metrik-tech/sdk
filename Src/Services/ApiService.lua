@@ -69,6 +69,7 @@ function ApiService._QueryServerStartAsync(self: ApiService)
 		["serverId"] = self.JobId,
 		["placeVersion"] = game.PlaceVersion,
 		["type"] = string.upper(serverType),
+		["maxPlayers"] = Players.MaxPlayers,
 		["region"] = self.Trace.loc
 	})
 		:andThen(function(request)
