@@ -61,6 +61,33 @@ function ActionService.OnStart(self: ActionService)
 		if packet.behaviour == ActionBehaviour.SelectedServers or packet.behaviour == ActionBehaviour.SelectedServer then
 			assert(packet.serverIds ~= nil, `Action behaviour for '{packet.key}' was set to '{packet.behaviour}' but had no 'serverIds' key!`)
 
+			if #packet.serverIds > 1 then
+				local success, claimResponse = ApiService:PostAsync(string.format(ApiPaths.ClaimAction, ApiService.ProjectId), {
+					runId = packet.runId,
+					serverId = ApiService.JobId
+				}):await()
+	
+				if not success then
+					self.Reporter:Warn(`Action '{packet.key}' dismissed - {claimResponse}.`)
+	
+					return
+				end
+	
+				if not claimResponse.Success then
+					self.Reporter:Warn(`Action '{packet.key}' dismissed - {claimResponse.StatusMessage}.`)
+	
+					return
+				end
+	
+				local bodyMessage = HttpService:JSONDecode(claimResponse.Body)
+	
+				if not bodyMessage.success then
+					self.Reporter:Warn(`Action '{packet.key}' dismissed - {bodyMessage.message}.`)
+	
+					return
+				end
+			end
+
 			if not table.find(packet.serverIds, ApiService.JobId) then
 				self.Reporter:Debug(`Action '{packet.key}' dismissed - not in selected servers array.`)
 
