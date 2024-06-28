@@ -1,12 +1,7 @@
 local ServerStorage = game:GetService("ServerStorage")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
-local HttpService = game:GetService("HttpService")
 
 local MetrikSDK = require(ReplicatedStorage.MetrikSDK)
-
-<<<<<<< HEAD
-local ProblematicModule = require(script.Parent.ProblematicModule)
 
 MetrikSDK.Server:SetProjectId(ServerStorage.__Project_Id.Value)
 MetrikSDK.Server:SetAuthenticationToken(ServerStorage.__Project_Auth.Value)
@@ -14,19 +9,22 @@ MetrikSDK.Server:SetAuthenticationToken(ServerStorage.__Project_Auth.Value)
 MetrikSDK.Server:InitializeAsync():andThen(function()
 	warn("Metrik SDK loaded!")
 
-	task.spawn(function()
-		ProblematicModule.abc()
-	end)
-=======
-MetrikSDK.Server:InitializeAsync({
-	projectId = ServerStorage.__Project_Id.Value,
-	authenticationSecret = RunService:IsStudio() and ServerStorage.__Project_Auth.Value
-		or HttpService:GetSecret("metrik_token")
-}):andThen(function()
-	warn("Metrik SDK loaded!")
+	task.wait(5)
 
-	print(MetrikSDK.Server:GetFlag("example-dynamic-flag"))
->>>>>>> 937388f1faac82959267026529124e2da5c7badc
+	local action = MetrikSDK.Server.ActionBuilder.new()
+		:SetName("Hello World")
+		:SetDescription("Prints 'Hello, World' with an option for another message")
+		:AddArgument("Message", {
+			Required = true,
+			Type = "string",
+		})
+		:Build()
+
+	function action:OnRun(message: string)
+		print("Hello, World")
+
+		print(message)
+	end
 end):catch(function(exception)
 	warn("Metrik SDK failed: ", exception)
 end)

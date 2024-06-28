@@ -10,7 +10,6 @@ local ApiPaths = require(script.Parent.Parent.Data.ApiPaths)
 local ServerType = require(script.Parent.Parent.Enums.ServerType)
 
 local HEARTBEAT_UPDATE_SECONDS = 60 * 10 -- send server heartbeat every 10 minutes.
-local DELAY_BEFORE_FIRST_HEARTBEAT = 120
 
 local ApiService = {}
 
@@ -78,7 +77,7 @@ function ApiService._QueryServerStartAsync(self: ApiService)
 		["region"] = self.Trace.loc
 	})
 		:andThen(function(request)
-			task.delay(DELAY_BEFORE_FIRST_HEARTBEAT, function()
+			self.HeartbeatThread = task.delay(HEARTBEAT_UPDATE_SECONDS, function()
 				self:Heartbeat(HEARTBEAT_UPDATE_SECONDS)
 			end)
 
@@ -124,7 +123,7 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 		self.Reporter:Debug(`'{apiMethod}' request made to endpoint '{apiEndpoint}'`)
 
 		if not self.HTTPEnabled then
-			reject(
+			return reject(
 				`HTTP Service Requests failed to process, please ensure that HTTP requests are enabled via game settings!`
 			)
 		end
@@ -140,13 +139,13 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 		}):andThen(function(response)
 			resolve(response)
 		end):catch(function(response)
-			local decodedJson = HttpService:JSONDecode(response.Body)
+			local success, decodedJson = pcall(HttpService.JSONDecode, HttpService, response.Body)
 			local errorObject = {}
 
 			errorObject.StatusCode = response.StatusCode
 			errorObject.StatusMessage = response.StatusMessage
-			errorObject.BodyCode = decodedJson.code
-			errorObject.BodyMessage = decodedJson.code
+			errorObject.BodyCode = success and decodedJson.code or "Unknown"
+			errorObject.BodyMessage = success and decodedJson.code or "Unknown"
 			errorObject.Errors = {}
 			errorObject.Request = {
 				Url = `https://{ApiPaths.BaseUrl}{apiEndpoint}`,
@@ -158,18 +157,22 @@ function ApiService.RequestAsync(self: ApiService, apiMethod: "GET" | "POST", ap
 				Body = HttpService:JSONEncode(data),
 			}
 
-			if decodedJson.issues then
-				for _, issue in decodedJson.issues do
-					table.insert(errorObject.Errors, issue)
+			if decodedJson then
+				if decodedJson.issues then
+					for _, issue in decodedJson.issues do
+						table.insert(errorObject.Errors, issue)
+					end
+				elseif decodedJson.message then
+					table.insert(errorObject.Errors, decodedJson.message)
 				end
-			elseif decodedJson.message then
-				table.insert(errorObject.Errors, decodedJson.message)
 			end
 
 			self.Reporter:Warn(`'{apiMethod}' request failed for endpoint '{apiEndpoint}': %s`, errorObject)
 
-			reject(errorObject)
+			return reject(errorObject)
 		end)
+
+		return
 	end)
 end
 
@@ -191,15 +194,15 @@ function ApiService.PostAsync(self: ApiService, apiEndpoint: string, data: { [an
 end
 
 function ApiService.Heartbeat(self: ApiService, nextHeartbeatIn: number?)
-	local playerArray = {}
+	local playerIdArray = {}
 
 	for _, player in Players:GetPlayers() do
-		table.insert(playerArray, player.UserId)
+		table.insert(playerIdArray, player.UserId)
 	end
 
-	self:PostAsync(ApiPaths.ServerHeartbeat, {
+	self:PostAsync(string.format(ApiPaths.ServerHeartbeat, self.ProjectId), {
 		serverId = self.JobId,
-		players = playerArray,
+		players = playerIdArray
 	}):await()
 
 	if nextHeartbeatIn then

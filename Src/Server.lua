@@ -16,12 +16,9 @@ local ApiPaths = require(script.Parent.Data.ApiPaths)
 local ActionBuilder = require(script.Parent.API.ActionBuilder)
 
 local ApiService = require(script.Parent.Services.ApiService)
-<<<<<<< HEAD
 local BreadcrumbService = require(script.Parent.Services.BreadcrumbService)
 local ContextService = require(script.Parent.Services.ContextService)
-=======
 local FlagsService = require(script.Parent.Services.FlagsService)
->>>>>>> 937388f1faac82959267026529124e2da5c7badc
 
 local ON_INIT_LIFECYCLE_NAME = "OnInit"
 local ON_START_LIFECYCLE_NAME = "OnStart"
@@ -57,7 +54,6 @@ end
 --[=[
 	...
 
-<<<<<<< HEAD
 	@method CreateBreadcrumb
 	@within MetrikSDK.Server
 
@@ -82,12 +78,7 @@ function MetrikSDK.Public.SetContext(self: MetrikPublicAPI, context: { [string]:
 end
 
 --[=[
-	...
-
-	@method SetAuthenticationToken
-=======
 	@method IsServerUpToDate
->>>>>>> 937388f1faac82959267026529124e2da5c7badc
 	@within MetrikSDK.Server
 
 	@return ()

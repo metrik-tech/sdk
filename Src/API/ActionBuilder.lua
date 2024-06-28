@@ -70,11 +70,14 @@ function ActionBuilder.Prototype.AddArgument(self: ActionBuilder, argumentName: 
 	filteredArgumentName = string.gsub(filteredArgumentName, "\9", "-")
 	filteredArgumentName = string.gsub(filteredArgumentName, "\0", "")
 	
-	argumentsDict[filteredArgumentName] = Sift.Dictionary.merge(argumentMetadata, {
-		Type = "string",
-		Description = "",
-		Required = false
-	})
+	argumentsDict[filteredArgumentName] = {
+		Type = argumentMetadata and string.upper(argumentMetadata.Type or "STRING"),
+		Description = argumentMetadata and argumentMetadata.Description or "",
+		Required = argumentMetadata and argumentMetadata.Required or false,
+		Default = argumentMetadata and argumentMetadata.Default or ""
+	}
+
+	table.insert(self.Prototype.ArgumentOrderedList, filteredArgumentName)
 
 	return self
 end
@@ -83,7 +86,12 @@ function ActionBuilder.Prototype.Build(self: ActionBuilder): Action
 	assert(self.Prototype.Name ~= nil, "Actions are required to have a 'Name', please call ':SetName'")
 	assert(Action.Instantiated[self.Prototype.Key] == nil, `Action '{self.Prototype.Name}' is a duplicate action!`)
 
-	Action.Instantiated[self.Prototype.Key] = setmetatable(Sift.Dictionary.copyDeep(self.Prototype) :: { }, ActionBuilder.Prototype) :: Action
+	Action.Instantiated[self.Prototype.Key] = setmetatable(
+		Sift.Dictionary.copyDeep(self.Prototype) :: { },
+		{
+			__index = Action.Prototype
+		}
+	) :: Action
 
 	task.defer(function()
 		ActionService:RegisterActionAsync(Action.Instantiated[self.Prototype.Key]):expect()
@@ -95,7 +103,8 @@ end
 function ActionBuilder.Public.new(): ActionBuilder
 	return setmetatable({
 		Prototype = {
-			Arguments = { }
+			Arguments = { },
+			ArgumentOrderedList = { }
 		}
 	}, {
 		__index = ActionBuilder.Prototype
@@ -103,9 +112,10 @@ function ActionBuilder.Public.new(): ActionBuilder
 end
 
 export type ArgumentMetadata = typeof(Action.Prototype) & {
-	Type: "string" | "number" | "boolean"?,
+	Type: ("string" | "number" | "boolean")?,
 	Description: string?,
-	Required: boolean?
+	Required: boolean?,
+	Default: any,
 }
 
 export type Action = typeof(Action.Prototype) & {
