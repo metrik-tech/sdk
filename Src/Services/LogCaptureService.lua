@@ -1,5 +1,6 @@
 local HttpService = game:GetService("HttpService")
 local ScriptContext = game:GetService("ScriptContext")
+local Players = game:GetService("Players")
 
 local Console = require(script.Parent.Parent.Packages.Console)
 local Signal = require(script.Parent.Parent.Packages.Signal)
@@ -23,6 +24,16 @@ LogCaptureService.Reporter = Console.new(`{script.Name}`)
 LogCaptureService.MessageQueue = {}
 
 LogCaptureService.MessageQueueUpdated = Signal.new()
+
+function LogCaptureService.OmitUserInformationFromSource(self: LogCaptureService, source: string)
+	for _, player in Players:GetPlayers() do
+		source = string.gsub(source, player.UserId, "<USER_ID>")
+		source = string.gsub(source, player.Name, "<USER_NAME>")
+		source = string.gsub(source, player.DisplayName, "<USER_DISPLAY_NAME>")
+	end
+
+	return source
+end
 
 function LogCaptureService.OnMessageError(self: LogCaptureService, source: string, trace: string)
 	local filePath, message = string.match(source, "(%S+):%d+: (.+)")
@@ -50,7 +61,7 @@ function LogCaptureService.OnMessageError(self: LogCaptureService, source: strin
 	end
 
 	table.insert(self.MessageQueue, {
-		["message"] = message,
+		["message"] = self:OmitUserInformationFromSource(message),
 		["placeVersion"] = game.PlaceVersion,
 		["serverId"] = ApiService.JobId,
 		["script"] = filePath,
