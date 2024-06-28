@@ -22,6 +22,7 @@ State = "4x8matrix/state@2.0.1" # https://github.com/4x8Matrix/State
 Signal = "sleitnick/signal@1.5.0" # https://sleitnick.github.io/RbxUtil/api/Signal
 Promise = "evaera/promise@4.0.0" # https://eryn.io/roblox-lua-promise/
 Sift = "csqrl/sift@0.0.5" # https://csqrl.github.io/sift/
+LuauRegex = "scottricity/luau-regexp@0.1.0" # https://github.com/jsdotlua/luau-regexp
 
 # Networking
 Comm = "sleitnick/comm@0.3.2" # https://sleitnick.github.io/RbxUtil/api/Comm/

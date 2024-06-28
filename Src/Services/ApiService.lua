@@ -5,6 +5,7 @@ local Players = game:GetService("Players")
 local State = require(script.Parent.Parent.Packages.State)
 local Console = require(script.Parent.Parent.Packages.Console)
 local Promise = require(script.Parent.Parent.Packages.Promise)
+local Signal = require(script.Parent.Parent.Packages.Signal)
 
 local ApiPaths = require(script.Parent.Parent.Data.ApiPaths)
 local ServerType = require(script.Parent.Parent.Enums.ServerType)
@@ -24,6 +25,8 @@ ApiService.ProjectId = (nil :: any) :: string
 
 ApiService.Trace = {}
 ApiService.ServerType = "Unknown"
+
+ApiService.OnAuthenticated = Signal.new()
 
 ApiService.Authenticated = State.new(false)
 
@@ -77,6 +80,8 @@ function ApiService._QueryServerStartAsync(self: ApiService)
 		["region"] = self.Trace.loc
 	})
 		:andThen(function(request)
+			local requestBody = HttpService:JSONDecode(request.body)
+
 			self.HeartbeatThread = task.delay(HEARTBEAT_UPDATE_SECONDS, function()
 				self:Heartbeat(HEARTBEAT_UPDATE_SECONDS)
 			end)
@@ -84,6 +89,7 @@ function ApiService._QueryServerStartAsync(self: ApiService)
 			self.Reporter:Log(`Server '{self.JobId}' has authenticated with the Metrik API`)
 
 			self.Authenticated:Set(true)
+			self.OnAuthenticated:Fire(requestBody)
 
 			game:BindToClose(function()
 				self:StopHeartbeat()
