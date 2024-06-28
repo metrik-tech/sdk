@@ -2,6 +2,8 @@
 	Metrik SDK - https://github.com/metrik-tech/sdk
 ]]
 
+local HttpService = game:GetService("HttpService")
+
 local Runtime = require(script.Parent.Packages.Runtime)
 local Promise = require(script.Parent.Packages.Promise)
 local Console = require(script.Parent.Packages.Console)
@@ -9,6 +11,7 @@ local Console = require(script.Parent.Packages.Console)
 local Error = require(script.Parent.Enums.Error)
 
 local ErrorFormats = require(script.Parent.Data.ErrorFormats)
+local ApiPaths = require(script.Parent.Data.ApiPaths)
 
 local ActionBuilder = require(script.Parent.API.ActionBuilder)
 
@@ -49,37 +52,24 @@ end
 --[=[
 	...
 
-	@method SetAuthenticationToken
+	@method IsServerUpToDate
 	@within MetrikSDK.Server
 
 	@return ()
 ]=]
 --
-function MetrikSDK.Public.SetAuthenticationToken(self: MetrikPublicAPI, authenticationToken: string)
-	self.Private.Reporter:Assert(
-		not self.Private.IsInitialized,
-		self.Private:FromError(Error.ExpectedCallAfterCall, "Metrik:SetAuthenticationToken", "Metrik:InitializeAsync")
-	)
+function MetrikSDK.Public.IsServerUpToDate(self: MetrikPublicAPI)
+	local success, response = ApiService:GetAsync(string.format(ApiPaths.GetLatestPlaceVersion, ApiService.ProjectId), { }):await()
 
-	ApiService:SetAuthenticationToken(authenticationToken)
-end
+	if not success or not response.Success then
+		-- fail gracefully
+		
+		return true
+	end
+	
+	local body = HttpService:JSONDecode(response.Body)
 
---[=[
-	...
-
-	@method SetProjectId
-	@within MetrikSDK.Server
-
-	@return ()
-]=]
---
-function MetrikSDK.Public.SetProjectId(self: MetrikPublicAPI, projectId: string)
-	self.Private.Reporter:Assert(
-		not self.Private.IsInitialized,
-		self.Private:FromError(Error.ExpectedCallAfterCall, "Metrik:SetProjectId", "Metrik:InitializeAsync")
-	)
-
-	ApiService:SetProjectId(projectId)
+	return body.latest == game.PlaceVersion
 end
 
 --[=[
@@ -105,13 +95,20 @@ end
 	:::
 
 	@method InitializeAsync
+	@param settings { projectId: string, authenticationSecret: Secret }
 	@within MetrikSDK.Server
 
 	@return Promise<()>
 ]=]
 --
-function MetrikSDK.Public.InitializeAsync(self: MetrikPublicAPI)
+function MetrikSDK.Public.InitializeAsync(self: MetrikPublicAPI, settings: {
+	projectId: string,
+	authenticationSecret: Secret
+})
 	return Promise.new(function(resolve, reject)
+		ApiService:SetProjectId(settings.projectId)
+		ApiService:SetAuthenticationSecret(settings.authenticationSecret)
+
 		if self.Private.IsInitialized then
 			return reject(self.Private:FromError(Error.AlreadyInitializedError))
 		end
