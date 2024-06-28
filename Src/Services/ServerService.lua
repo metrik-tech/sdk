@@ -44,7 +44,7 @@ function ServerService.ShutdownLocalServer(self: ServerService)
         TeleportService:TeleportAsync(game.PlaceId, playerTeleportGroup, teleportOptions)
     end
 
-    self.Reporter:Log(`All players teleported, adding '.PlayerAdded' hook for teleporting new players.`))
+    self.Reporter:Log(`All players teleported, adding '.PlayerAdded' hook for teleporting new players.`)
 
     Players.PlayerAdded:Connect(function(player: Player)
         TeleportService:TeleportAsync(game.PlaceId, { player }, teleportOptions)
