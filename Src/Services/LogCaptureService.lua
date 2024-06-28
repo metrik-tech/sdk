@@ -15,6 +15,10 @@ local GetScriptFromFullName = require(script.Parent.Parent.Util.GetScriptFromFul
 local Network = require(script.Parent.Parent.Network.Server)
 
 local MESSAGE_REPORTER_DELAY = 60
+local COMMON_UUID_PATTERNS = table.freeze({
+	"rbxassetid://%d+",
+	"https://www.roblox.com/asset/?id=%d+",
+})
 
 local LogCaptureService = {}
 
@@ -25,12 +29,44 @@ LogCaptureService.MessageQueue = {}
 
 LogCaptureService.MessageQueueUpdated = Signal.new()
 
-function LogCaptureService.OmitUserInformationFromSource(self: LogCaptureService, source: string)
+function LogCaptureService.OmitAssetUrlFromSource(self: LogCaptureService, url: string, source: string)
+	local index = string.find(source, url)
+
+	while index do
+		local lastIndex = string.find(source, " ", index)
+
+		if lastIndex then
+			lastIndex -= 1
+		else
+			lastIndex = string.find(source, "\n", index)
+		end
+
+		if not lastIndex then
+			lastIndex = #source
+		end
+
+		local input = string.sub(source, index, lastIndex)
+		
+		source = string.gsub(source, input, "<ASSET_URL>")
+		index = string.find(source, url)
+	end
+
+	return source
+end
+
+function LogCaptureService.OmitUUIDsFromSource(self: LogCaptureService, source: string)
 	for _, player in Players:GetPlayers() do
 		source = string.gsub(source, player.UserId, "<USER_ID>")
 		source = string.gsub(source, player.Name, "<USER_NAME>")
 		source = string.gsub(source, player.DisplayName, "<USER_DISPLAY_NAME>")
 	end
+
+	for _, pattern in COMMON_UUID_PATTERNS do
+		source = string.gsub(source, pattern, "<UUID>")
+	end
+
+	source = self:OmitAssetUrlFromSource("rbxasset://", source)
+	source = self:OmitAssetUrlFromSource("rbxthumb://", source)
 
 	return source
 end
@@ -60,8 +96,10 @@ function LogCaptureService.OnMessageError(self: LogCaptureService, source: strin
 		parent = parent.Parent
 	end
 
+	print(self:OmitUUIDsFromSource(message))
+
 	table.insert(self.MessageQueue, {
-		["message"] = self:OmitUserInformationFromSource(message),
+		["message"] = self:OmitUUIDsFromSource(message),
 		["placeVersion"] = game.PlaceVersion,
 		["serverId"] = ApiService.JobId,
 		["script"] = filePath,
