@@ -12,8 +12,7 @@ MetrikSDK.Server:InitializeAsync({
 }):andThen(function()
 	warn("Metrik SDK loaded!")
 
-	print(RunService:IsStudio() and ServerStorage.__Project_Auth.Value
-	or HttpService:GetSecret("metrik_token"))
+	print(MetrikSDK.Server:GetFlag("example-dynamic-flag"))
 end):catch(function(exception)
 	warn("Metrik SDK failed: ", exception)
 end)

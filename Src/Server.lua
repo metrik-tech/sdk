@@ -16,6 +16,7 @@ local ApiPaths = require(script.Parent.Data.ApiPaths)
 local ActionBuilder = require(script.Parent.API.ActionBuilder)
 
 local ApiService = require(script.Parent.Services.ApiService)
+local FlagsService = require(script.Parent.Services.FlagsService)
 
 local ON_INIT_LIFECYCLE_NAME = "OnInit"
 local ON_START_LIFECYCLE_NAME = "OnStart"
@@ -69,6 +70,19 @@ function MetrikSDK.Public.IsServerUpToDate(self: MetrikPublicAPI)
 	local body = HttpService:JSONDecode(response.Body)
 
 	return body.latest == game.PlaceVersion
+end
+
+--[=[
+	...
+
+	@method EvaluateFlag
+	@within MetrikSDK.Server
+
+	@return ()
+]=]
+--
+function MetrikSDK.Public.GetFlag(self: MetrikPublicAPI, flagName: string)
+	return FlagsService:EvaluateFlag(flagName)
 end
 
 --[=[

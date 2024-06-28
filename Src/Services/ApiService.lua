@@ -24,8 +24,11 @@ ApiService.AuthenticationSecret = (nil :: any) :: Secret
 ApiService.ProjectId = (nil :: any) :: string
 
 ApiService.Trace = {}
+ApiService.ServerType = "Unknown"
 
 ApiService.Authenticated = State.new(false)
+
+-- todo: re-queue HTTP requests if they fail! 
 
 function ApiService._QueryTraceAsync(self: ApiService)
 	return self:RawRequestAsync({
@@ -64,6 +67,8 @@ function ApiService._QueryServerStartAsync(self: ApiService)
 	elseif game.VIPServerId ~= "" then
 		serverType = ServerType.Reserved
 	end
+
+	self.ServerType = serverType
 
 	return self:PostAsync(string.format(ApiPaths.ServerStart, self.ProjectId), {
 		["serverId"] = self.JobId,

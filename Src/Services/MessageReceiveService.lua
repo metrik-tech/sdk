@@ -15,6 +15,7 @@ MessageReceiveService.OnBroadcast = Signal.new()
 MessageReceiveService.OnAction = Signal.new()
 MessageReceiveService.OnModeration = Signal.new()
 MessageReceiveService.OnFlags = Signal.new()
+MessageReceiveService.OnServers = Signal.new()
 
 function MessageReceiveService.HandleMessageServicePacket(self: MessageReceiveService, packet: MessagingServicePacket)
 	local dateTimeSent = DateTime.fromUnixTimestamp(packet.Sent)
@@ -23,7 +24,7 @@ function MessageReceiveService.HandleMessageServicePacket(self: MessageReceiveSe
 	local messageContent = HttpService:JSONDecode(decodedPacketJson.message)
 	local topicContent = decodedPacketJson.topic
 
-	self.Reporter:Debug(`Recieved '{topicContent}' request at '{dateTimeSent:FormatLocalTime("LLL", "en-us")}'`)
+	self.Reporter:Debug(`Received '{topicContent}' request at '{dateTimeSent:FormatLocalTime("LLL", "en-us")}'`)
 
 	if topicContent == TopicType.Actions then
 		self.OnAction:Fire(messageContent)
@@ -33,6 +34,8 @@ function MessageReceiveService.HandleMessageServicePacket(self: MessageReceiveSe
 		self.OnFlags:Fire(messageContent)
 	elseif topicContent == TopicType.Moderation then
 		self.OnModeration:Fire(messageContent)
+	elseif topicContent == TopicType.Servers then
+		self.OnServers:Fire(messageContent)
 	else
 		self.Reporter:Warn(`Unknown Topic: '{topicContent}', dropping request!`)
 	end

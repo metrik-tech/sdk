@@ -13,4 +13,6 @@ return table.freeze({
 	RegisterAction = "/projects/%s/actions/register",
 
 	GetModerationStatus = "/projects/%s/moderation/status",
+
+	GetAllFlags = "/projects/%s/flags/get",
 })
