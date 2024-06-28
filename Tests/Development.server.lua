@@ -3,8 +3,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local MetrikSDK = require(ReplicatedStorage.MetrikSDK)
 
--- local MessageReceiveService = require(ReplicatedStorage.MetrikSDK.Services.MessageReceiveService)
-
 MetrikSDK.Server:SetProjectId(ServerStorage.__Project_Id.Value)
 MetrikSDK.Server:SetAuthenticationToken(ServerStorage.__Project_Auth.Value)
 

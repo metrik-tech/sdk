@@ -2,6 +2,8 @@
 	Metrik SDK - https://github.com/metrik-tech/sdk
 ]]
 
+local HttpService = game:GetService("HttpService")
+
 local Runtime = require(script.Parent.Packages.Runtime)
 local Promise = require(script.Parent.Packages.Promise)
 local Console = require(script.Parent.Packages.Console)
@@ -9,10 +11,14 @@ local Console = require(script.Parent.Packages.Console)
 local Error = require(script.Parent.Enums.Error)
 
 local ErrorFormats = require(script.Parent.Data.ErrorFormats)
+local ApiPaths = require(script.Parent.Data.ApiPaths)
 
 local ActionBuilder = require(script.Parent.API.ActionBuilder)
 
 local ApiService = require(script.Parent.Services.ApiService)
+local BreadcrumbService = require(script.Parent.Services.BreadcrumbService)
+local ContextService = require(script.Parent.Services.ContextService)
+local FlagsService = require(script.Parent.Services.FlagsService)
 
 local ON_INIT_LIFECYCLE_NAME = "OnInit"
 local ON_START_LIFECYCLE_NAME = "OnStart"
@@ -48,37 +54,61 @@ end
 --[=[
 	...
 
-	@method SetAuthenticationToken
+	@method CreateBreadcrumb
 	@within MetrikSDK.Server
 
 	@return ()
 ]=]
 --
-function MetrikSDK.Public.SetAuthenticationToken(self: MetrikPublicAPI, authenticationToken: string)
-	self.Private.Reporter:Assert(
-		not self.Private.IsInitialized,
-		self.Private:FromError(Error.ExpectedCallAfterCall, "Metrik:SetAuthenticationToken", "Metrik:InitializeAsync")
-	)
-
-	ApiService:SetAuthenticationToken(authenticationToken)
+function MetrikSDK.Public.CreateBreadcrumb(self: MetrikPublicAPI, message: string)
+	BreadcrumbService:CreateBreadcrumbFor(debug.info(2, "s"), message)
 end
 
 --[=[
 	...
 
-	@method SetProjectId
+	@method SetContext
 	@within MetrikSDK.Server
 
 	@return ()
 ]=]
 --
-function MetrikSDK.Public.SetProjectId(self: MetrikPublicAPI, projectId: string)
-	self.Private.Reporter:Assert(
-		not self.Private.IsInitialized,
-		self.Private:FromError(Error.ExpectedCallAfterCall, "Metrik:SetProjectId", "Metrik:InitializeAsync")
-	)
+function MetrikSDK.Public.SetContext(self: MetrikPublicAPI, context: { [string]: any })
+	ContextService:CreateContextFor(debug.info(2, "s"), context)
+end
 
-	ApiService:SetProjectId(projectId)
+--[=[
+	@method IsServerUpToDate
+	@within MetrikSDK.Server
+
+	@return ()
+]=]
+--
+function MetrikSDK.Public.IsServerUpToDate(self: MetrikPublicAPI)
+	local success, response = ApiService:GetAsync(string.format(ApiPaths.GetLatestPlaceVersion, ApiService.ProjectId), { }):await()
+
+	if not success or not response.Success then
+		-- fail gracefully
+		
+		return true
+	end
+	
+	local body = HttpService:JSONDecode(response.Body)
+
+	return body.latest == game.PlaceVersion
+end
+
+--[=[
+	...
+
+	@method EvaluateFlag
+	@within MetrikSDK.Server
+
+	@return ()
+]=]
+--
+function MetrikSDK.Public.GetFlag(self: MetrikPublicAPI, flagName: string)
+	return FlagsService:EvaluateFlag(flagName)
 end
 
 --[=[
@@ -91,13 +121,20 @@ end
 	:::
 
 	@method InitializeAsync
+	@param settings { projectId: string, authenticationSecret: Secret }
 	@within MetrikSDK.Server
 
 	@return Promise<()>
 ]=]
 --
-function MetrikSDK.Public.InitializeAsync(self: MetrikPublicAPI)
+function MetrikSDK.Public.InitializeAsync(self: MetrikPublicAPI, settings: {
+	projectId: string,
+	authenticationSecret: Secret
+})
 	return Promise.new(function(resolve, reject)
+		ApiService:SetProjectId(settings.projectId)
+		ApiService:SetAuthenticationSecret(settings.authenticationSecret)
+
 		if self.Private.IsInitialized then
 			return reject(self.Private:FromError(Error.AlreadyInitializedError))
 		end

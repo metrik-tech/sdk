@@ -6,6 +6,8 @@ return table.freeze({
 	ServerEnd = "/projects/%s/server/stop",
 	ServerHeartbeat = "/projects/%s/server/heartbeat",
 
+	GetLatestPlaceVersion = "/projects/%s/server/latest",
+
 	ServerLogBatch = "/projects/%s/log/error/batch",
 
 	RegisterAction = "/projects/%s/actions/register",
@@ -13,4 +15,6 @@ return table.freeze({
 	ClaimAction = "/projects/%s/actions/claim",
 
 	GetModerationStatus = "/projects/%s/moderation/status",
+
+	GetAllFlags = "/projects/%s/flags/get",
 })

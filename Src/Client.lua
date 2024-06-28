@@ -10,6 +10,8 @@ local Error = require(script.Parent.Enums.Error)
 
 local ErrorFormats = require(script.Parent.Data.ErrorFormats)
 
+local FlagsController = require(script.Parent.Controllers.FlagsController)
+
 local ON_INIT_LIFECYCLE_NAME = "OnInit"
 local ON_START_LIFECYCLE_NAME = "OnStart"
 
@@ -30,6 +32,19 @@ MetrikSDK.Private.Reporter = Console.new("MetrikSDK-Client")
 
 function MetrikSDK.Private.FromError(_: MetrikPrivateAPI, errorEnum: string, ...: string)
 	return string.format(ErrorFormats[errorEnum], ...)
+end
+
+--[=[
+	...
+
+	@method EvaluateFlag
+	@within MetrikSDK.Server
+
+	@return ()
+]=]
+--
+function MetrikSDK.Public.GetFlag(self: MetrikPublicAPI, flagName: string)
+	return FlagsController:EvaluateFlag(flagName)
 end
 
 --[=[

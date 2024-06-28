@@ -50,10 +50,14 @@ function ActionService.RegisterActionAsync(self: ActionService, action: any)
 
 	self.Actions[action.Key] = action
 
-	return ApiService:PostAsync(string.format(
+	local success, result = ApiService:PostAsync(string.format(
 		ApiPaths.RegisterAction,
 		ApiService.ProjectId
 	), requestBody)
+
+	if not success then
+		self.Reporter:Critical(`Failed to register action: '{action.Name}' - {result}`)
+	end
 end
 
 function ActionService.OnStart(self: ActionService)

@@ -48,3 +48,30 @@ event BroadcastChatMessage = {
 	call: SingleSync,
 	data: string,
 }
+
+funct FetchFlagsAsync = {
+    call: Sync,
+    rets: struct {
+		StaticFlags: map {
+			[u16]: struct {
+				Id: string,
+				Name: string,
+				Value: string
+			}
+		},
+		DynamicFlags: map {
+			[u16]: struct {
+				Id: string,
+				Name: string,
+				Value: string,
+				Rules: struct {
+					Type: string,
+					Parameter: string,
+					Operator: string,
+					Operand: string,
+					Value: string
+				}
+			}
+		}
+	}
+}
