@@ -102,6 +102,12 @@ function ModerationService.OnPlayerAdded(self: ModerationService, player: Player
 end
 
 function ModerationService.OnStart(self: ModerationService)
+	if true then
+		-- TODO: at some point in the future, look back into the Moderation
+		
+		return
+	end
+
 	MessageReceiveService.OnModeration:Connect(function(packet: ModerationPacket)
 		local player = Players:GetPlayerByUserId(packet.userId)
 
