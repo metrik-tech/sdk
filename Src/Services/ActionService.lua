@@ -58,50 +58,7 @@ end
 
 function ActionService.OnStart(self: ActionService)
 	MessageReceiveService.OnAction:Connect(function(packet: ActionPacket)
-		if packet.behaviour == ActionBehaviour.SelectedServers or packet.behaviour == ActionBehaviour.SelectedServer then
-			assert(packet.serverIds ~= nil, `Action behaviour for '{packet.key}' was set to '{packet.behaviour}' but had no 'serverIds' key!`)
-
-			if #packet.serverIds > 1 then
-				local success, claimResponse = ApiService:PostAsync(string.format(ApiPaths.ClaimAction, ApiService.ProjectId), {
-					runId = packet.runId,
-					serverId = ApiService.JobId
-				}):await()
-	
-				if not success then
-					self.Reporter:Warn(`Action '{packet.key}' dismissed - {claimResponse}.`)
-	
-					return
-				end
-	
-				if not claimResponse.Success then
-					self.Reporter:Warn(`Action '{packet.key}' dismissed - {claimResponse.StatusMessage}.`)
-	
-					return
-				end
-	
-				local bodyMessage = HttpService:JSONDecode(claimResponse.Body)
-	
-				if not bodyMessage.success then
-					self.Reporter:Warn(`Action '{packet.key}' dismissed - {bodyMessage.message}.`)
-	
-					return
-				end
-			end
-
-			if not table.find(packet.serverIds, ApiService.JobId) then
-				self.Reporter:Debug(`Action '{packet.key}' dismissed - not in selected servers array.`)
-
-				return
-			end
-		elseif packet.behaviour == ActionBehaviour.SelectedVersions or packet.behaviour == ActionBehaviour.SelectedVersion then
-			assert(packet.placeVersions ~= nil, `Action behaviour for '{packet.key}' was set to '{packet.behaviour}' but had no 'placeVersions' key!`)
-
-			if not table.find(packet.placeVersions, game.PlaceVersion) then
-				self.Reporter:Debug(`Action '{packet.key}' dismissed - not in selected versions array.`)
-
-				return
-			end
-		elseif packet.behaviour == ActionBehaviour.RandomServer then
+		if packet.exclusive then
 			local success, claimResponse = ApiService:PostAsync(string.format(ApiPaths.ClaimAction, ApiService.ProjectId), {
 				runId = packet.runId,
 				serverId = ApiService.JobId
@@ -126,7 +83,25 @@ function ActionService.OnStart(self: ActionService)
 
 				return
 			end
-		elseif packet.behaviour == ActionBehaviour.AllServers then
+		end
+
+		if packet.behaviour == ActionBehaviour.SelectedServers or packet.behaviour == ActionBehaviour.SelectedServer then
+			assert(packet.serverIds ~= nil, `Action behaviour for '{packet.key}' was set to '{packet.behaviour}' but had no 'serverIds' key!`)
+
+			if not table.find(packet.serverIds, ApiService.JobId) then
+				self.Reporter:Debug(`Action '{packet.key}' dismissed - not in selected servers array.`)
+
+				return
+			end
+		elseif packet.behaviour == ActionBehaviour.SelectedVersions or packet.behaviour == ActionBehaviour.SelectedVersion then
+			assert(packet.placeVersions ~= nil, `Action behaviour for '{packet.key}' was set to '{packet.behaviour}' but had no 'placeVersions' key!`)
+
+			if not table.find(packet.placeVersions, game.PlaceVersion) then
+				self.Reporter:Debug(`Action '{packet.key}' dismissed - not in selected versions array.`)
+
+				return
+			end
+		elseif packet.behaviour == ActionBehaviour.AllServers or packet.behaviour == ActionBehaviour.RandomServer then
 			self.Reporter:Debug(`Action behaviour set to: '{packet.behaviour}', running!`)
 		else
 			self.Reporter:Warn(`Action behaviour set to: '{packet.behaviour}', this is unknown!`)
@@ -223,7 +198,8 @@ export type ActionPacket = {
 	placeVersions: { }?,
 	serverIds: { }?,
 	runId: string,
-	behaviour: string
+	behaviour: string,
+	exclusive: boolean
 }
 
 return ActionService
