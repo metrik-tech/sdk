@@ -4,6 +4,7 @@ local Players = game:GetService("Players")
 
 local Console = require(script.Parent.Parent.Packages.Console)
 local Signal = require(script.Parent.Parent.Packages.Signal)
+local LuauRegex = require(script.Parent.Parent.Packages.LuauRegex)
 
 local ApiPaths = require(script.Parent.Parent.Data.ApiPaths)
 local ApiService = require(script.Parent.ApiService)
@@ -27,7 +28,31 @@ LogCaptureService.Reporter = Console.new(`{script.Name}`)
 
 LogCaptureService.MessageQueue = {}
 
+LogCaptureService.RegexFilters = {}
+LogCaptureService.RegexFilters.Custom = {}
+LogCaptureService.RegexFilters.Preset = {}
+
 LogCaptureService.MessageQueueUpdated = Signal.new()
+
+function LogCaptureService.SourcePassesRegexFilters(self: LogCaptureService, source: string)
+	for _, regexExpression in self.RegexFilters.Custom do
+		local matchesRegex = regexExpression:test(source)
+
+		if matchesRegex then
+			return false
+		end
+	end
+
+	for _, regexExpression in self.RegexFilters.Preset do
+		local matchesRegex = regexExpression:test(source)
+
+		if matchesRegex then
+			return false
+		end
+	end
+
+	return true
+end
 
 function LogCaptureService.OmitAssetUrlFromSource(self: LogCaptureService, url: string, source: string)
 	local index = string.find(source, url)
@@ -75,6 +100,12 @@ function LogCaptureService.OnMessageError(self: LogCaptureService, source: strin
 	local filePath, message = string.match(source, "(%S+):%d+: (.+)")
 	local scriptObject = GetScriptFromFullName(filePath)
 
+	if not self:SourcePassesRegexFilters(source) then
+		self.Reporter:Warn(`Dropping error '{message}' from '{filePath}' - message failed regex filters`)
+
+		return
+	end
+
 	if not scriptObject then
 		self.Reporter:Warn(`Dropping error '{message}' from '{filePath}' - script not found`)
 
@@ -96,8 +127,6 @@ function LogCaptureService.OnMessageError(self: LogCaptureService, source: strin
 		parent = parent.Parent
 	end
 
-	print(self:OmitUUIDsFromSource(message))
-
 	table.insert(self.MessageQueue, {
 		["message"] = self:OmitUUIDsFromSource(message),
 		["placeVersion"] = game.PlaceVersion,
@@ -111,6 +140,16 @@ function LogCaptureService.OnMessageError(self: LogCaptureService, source: strin
 end
 
 function LogCaptureService.OnStart(self: LogCaptureService)
+	ApiService.OnAuthenticated:Connect(function(readyPayload)
+		for _, pattern in readyPayload.issues.customFilters do
+			table.insert(self.RegexFilters.Custom, LuauRegex(pattern, "m"))
+		end
+
+		for _, pattern in readyPayload.issues.presetFilters do
+			table.insert(self.RegexFilters.Preset, LuauRegex(pattern, "m"))
+		end
+	end)
+
 	ScriptContext.Error:Connect(function(message: string, trace: string)
 		self:OnMessageError(message, trace)
 	end)
