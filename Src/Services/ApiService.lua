@@ -80,7 +80,7 @@ function ApiService._QueryServerStartAsync(self: ApiService)
 		["region"] = self.Trace.loc
 	})
 		:andThen(function(request)
-			local requestBody = HttpService:JSONDecode(request.body)
+			local requestBody = HttpService:JSONDecode(request.Body)
 
 			self.HeartbeatThread = task.delay(HEARTBEAT_UPDATE_SECONDS, function()
 				self:Heartbeat(HEARTBEAT_UPDATE_SECONDS)
