@@ -3,6 +3,7 @@ local net = require("@lune/net")
 local fs = require("@lune/fs")
 
 local artifact = process.args[1]
+print("process.env.GITHUB_SHA: ", process.env.GITHUB_SHA)
 local commitHash = process.env.GITHUB_SHA
 local authorization = process.env.SDK_ARTIFACT_UPLOAD_SECRET
 
