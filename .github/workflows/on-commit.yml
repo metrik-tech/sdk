@@ -14,3 +14,5 @@ jobs:
         run: rojo build default.project.json -o Artifact.rbxm
       - name: Deploy artifact
         run: lune run deploy Artifact.rbxm
+        env:
+          SDK_ARTIFACT_UPLOAD_SECRET: ${{secrets.SDK_ARTIFACT_UPLOAD_SECRET}}
