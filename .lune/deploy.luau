@@ -18,7 +18,7 @@ multiformContent ..= `\r\n`
 multiformContent ..= `{commitHash}\r\n`
 
 multiformContent ..= `--{multiformContentBoundary}\r\n`
-multiformContent ..= `Content-Disposition: form-data; name="file"\r\n`
+multiformContent ..= `Content-Disposition: form-data; name="file"; filename="file.rbxm"\r\n`
 multiformContent ..= `Content-Type: application/octet-stream\r\n`
 
 multiformContent ..= `\r\n`
