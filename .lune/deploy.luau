@@ -26,7 +26,7 @@ multiformContent ..= `{fs.readFile(artifact)}\r\n`
 
 multiformContent ..= `--{multiformContentBoundary}--\r\n`
 
-print(net.request({
+local request = net.request({
     url = "https://preview.metrik.app/api/sdk/upload-artifact",
     method = "POST",
     headers = {
@@ -34,4 +34,10 @@ print(net.request({
         ["content-type"] = `multipart/form-data; boundary={multiformContentBoundary}`
     },
     body = multiformContent
-}))
+})
+
+local body = net.jsonDecode(request.body)
+
+print(string.rep(`-`, 24))
+print(body.url)
+print(string.rep(`-`, 24))
