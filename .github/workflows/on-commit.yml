@@ -1,0 +1,16 @@
+on:
+  push:
+    branches: [ "*" ]
+
+jobs:
+  upload-artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: ok-nick/setup-aftman@v0.4.2
+      - name: Build artifact dependencies
+        run: wally install
+      - name: Build artifact
+        run: rojo build default.project.json -o Artifact.rbxm
+      - name: Deploy artifact
+        run: lune run deploy Artifact.rbxm
