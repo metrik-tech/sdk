@@ -130,26 +130,17 @@ function LogCaptureService.OnMessageError(self: LogCaptureService, source: strin
 	table.insert(self.MessageQueue, {
 		["message"] = self:OmitUUIDsFromSource(message),
 		["placeVersion"] = game.PlaceVersion,
+		["placeId"] = game.PlaceId,
 		["serverId"] = ApiService.JobId,
 		["script"] = filePath,
 		["trace"] = trace,
 		["ancestors"] = ancestors,
 		["breadcrumbs"] = breadcrumbs,
-		["context"] = HttpService:JSONEncode(context)
+		["context"] = context
 	})
 end
 
 function LogCaptureService.OnStart(self: LogCaptureService)
-	ApiService.OnAuthenticated:Connect(function(readyPayload)
-		for _, pattern in readyPayload.issues.customFilters do
-			table.insert(self.RegexFilters.Custom, LuauRegex(pattern, "m"))
-		end
-
-		for _, pattern in readyPayload.issues.presetFilters do
-			table.insert(self.RegexFilters.Preset, LuauRegex(pattern, "m"))
-		end
-	end)
-
 	ScriptContext.Error:Connect(function(message: string, trace: string)
 		self:OnMessageError(message, trace)
 	end)
@@ -170,9 +161,26 @@ function LogCaptureService.OnStart(self: LogCaptureService)
 
 			ApiService:PostAsync(string.format(ApiPaths.ServerLogBatch, ApiService.ProjectId), {
 				items = self.MessageQueue,
-			})
+			}):catch(function(error)
+				-- todo: requeue errors
+
+				self.Reporter:Warn(`Failed to send log batch - `)
+				self.Reporter:Warn(error)
+			end)
 
 			self.MessageQueue = {}
+		end
+	end)
+end
+
+function LogCaptureService.OnInit(self: LogCaptureService)
+	ApiService.OnAuthenticated:Connect(function(readyPayload)
+		for _, pattern in readyPayload.issues.customFilters do
+			table.insert(self.RegexFilters.Custom, LuauRegex(pattern, "m"))
+		end
+
+		for _, pattern in readyPayload.issues.presetFilters do
+			table.insert(self.RegexFilters.Preset, LuauRegex(pattern, "m"))
 		end
 	end)
 end
