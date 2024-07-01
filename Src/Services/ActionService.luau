@@ -32,6 +32,7 @@ function ActionService.RegisterActionAsync(self: ActionService, action: any)
 	requestBody.serverId = ApiService.JobId
 	requestBody.key = action.Key
 	requestBody.name = action.Name
+	requestBody.placeId = game.PlaceId
 	requestBody.placeVersion = game.PlaceVersion 
 	requestBody.description = action.Description
 	requestBody.arguments = {}
