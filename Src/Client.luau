@@ -11,6 +11,8 @@ local Error = require(script.Parent.Enums.Error)
 local ErrorFormats = require(script.Parent.Data.ErrorFormats)
 
 local FlagsController = require(script.Parent.Controllers.FlagsController)
+local BreadcrumbController = require(script.Parent.Controllers.BreadcrumbController)
+local ContextController = require(script.Parent.Controllers.ContextController)
 
 local ON_INIT_LIFECYCLE_NAME = "OnInit"
 local ON_START_LIFECYCLE_NAME = "OnStart"
@@ -32,6 +34,32 @@ MetrikSDK.Private.Reporter = Console.new("MetrikSDK-Client")
 
 function MetrikSDK.Private.FromError(_: MetrikPrivateAPI, errorEnum: string, ...: string)
 	return string.format(ErrorFormats[errorEnum], ...)
+end
+
+--[=[
+	...
+
+	@method CreateBreadcrumb
+	@within MetrikSDK.Client
+
+	@return ()
+]=]
+--
+function MetrikSDK.Public.CreateBreadcrumb(self: MetrikPublicAPI, message: string)
+	BreadcrumbController:CreateBreadcrumbFor(debug.info(2, "s"), message)
+end
+
+--[=[
+	...
+
+	@method SetContext
+	@within MetrikSDK.Client
+
+	@return ()
+]=]
+--
+function MetrikSDK.Public.SetContext(self: MetrikPublicAPI, context: { [string]: any })
+	ContextController:CreateContextFor(debug.info(2, "s"), context)
 end
 
 --[=[
