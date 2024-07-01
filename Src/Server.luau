@@ -61,7 +61,7 @@ end
 ]=]
 --
 function MetrikSDK.Public.CreateBreadcrumb(self: MetrikPublicAPI, message: string)
-	BreadcrumbService:CreateBreadcrumbFor(debug.info(2, "s"), message)
+	BreadcrumbService:CreateBreadcrumbFor(nil, debug.info(2, "s"), message)
 end
 
 --[=[
@@ -74,7 +74,7 @@ end
 ]=]
 --
 function MetrikSDK.Public.SetContext(self: MetrikPublicAPI, context: { [string]: any })
-	ContextService:CreateContextFor(debug.info(2, "s"), context)
+	ContextService:CreateContextFor(nil, debug.info(2, "s"), context)
 end
 
 --[=[
