@@ -32,8 +32,6 @@ ApiService.OnAuthenticated = Signal.new()
 
 ApiService.Authenticated = State.new(false)
 
--- todo: re-queue HTTP requests if they fail! 
-
 function ApiService._QueryTraceAsync(self: ApiService)
 	return self:RawRequestAsync({
 		Url = `https://{ApiPaths.TraceUrl}`,
