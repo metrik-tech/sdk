@@ -129,6 +129,18 @@ function LogCaptureService.OnMessageError(self: LogCaptureService, source: strin
 		parent = parent.Parent
 	end
 
+	warn("ERROR:", {
+		["message"] = self:OmitUUIDsFromSource(message),
+		["placeVersion"] = game.PlaceVersion,
+		["serverId"] = ApiService.JobId,
+		["script"] = filePath,
+		["trace"] = trace,
+		["ancestors"] = ancestors,
+		["breadcrumbs"] = breadcrumbs,
+		["context"] = HttpService:JSONEncode(context),
+		["environment"] = player and "CLIENT" or "SERVER",
+	})
+
 	table.insert(self.MessageQueue, {
 		["message"] = self:OmitUUIDsFromSource(message),
 		["placeVersion"] = game.PlaceVersion,
@@ -170,7 +182,7 @@ function LogCaptureService.OnStart(self: LogCaptureService)
 			self:OnMessageError(clientErrorObject.message, clientErrorObject.trace, player)
 		end
 
-		task.defer(CLIENT_REPORTER_KINDNESS - 5, function()
+		task.delay(MESSAGE_REPORTER_DELAY - CLIENT_REPORTER_KINDNESS, function()
 			self.PlayerQueues[player] = nil
 		end)
 	end)

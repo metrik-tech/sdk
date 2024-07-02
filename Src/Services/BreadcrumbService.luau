@@ -50,8 +50,8 @@ end
 
 function BreadcrumbService.OnStart(self: BreadcrumbService)
     Network.CreateBreadcrumb.SetCallback(function(player: Player, breadcrumb: { message: string, sourcePath: string })
-        if not BreadcrumbService.PlayerStore[player] then
-            BreadcrumbService.PlayerStore[player] = { }
+        if not self.PlayerStore[player] then
+            self.PlayerStore[player] = { }
         end
 
         self:CreateBreadcrumbFor(player, breadcrumb.sourcePath, breadcrumb.message)

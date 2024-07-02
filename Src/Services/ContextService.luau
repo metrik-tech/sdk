@@ -45,8 +45,8 @@ end
 
 function ContextService.OnStart(self: ContextService)
     Network.CreateContext.SetCallback(function(player: Player, context: { contextJSON: string, sourcePath: string })
-        if not ContextService.PlayerStore[player] then
-            ContextService.PlayerStore[player] = { }
+        if not self.PlayerStore[player] then
+            self.PlayerStore[player] = { }
         end
 
         self:CreateContextFor(player, context.sourcePath, HttpService:JSONDecode(context.contextJSON))
@@ -56,6 +56,7 @@ function ContextService.OnStart(self: ContextService)
         ContextService.PlayerStore[player] = nil
     end)
 end
+
 export type ContextService = typeof(ContextService)
 export type Context = { [string]: any }
 

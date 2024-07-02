@@ -1,5 +1,6 @@
 opt server_output = "Src/Network/Server.luau"
 opt client_output = "Src/Network/Client.luau"
+opt remote_scope = "METRIK_SDK"
 
 event LogError = {
 	from: Client,
@@ -8,8 +9,7 @@ event LogError = {
 	data: map {
 		[i16]: struct {
 			message: string,
-			trace: string,
-			filePath: string,
+			trace: string
 		}
 	},
 }

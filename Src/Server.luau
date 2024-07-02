@@ -162,6 +162,8 @@ function MetrikSDK.Public.InitializeAsync(self: MetrikPublicAPI, settings: {
 			return reject(response)
 		end
 
+		script.Parent:SetAttribute("INIT_COMPLETE", true)
+
 		self.Private.IsInitialized = true
 
 		self.Private.Reporter:Debug(`Loaded all MetrikSDK Services ({os.clock() - runtimeClockSnapshot}ms)`)
