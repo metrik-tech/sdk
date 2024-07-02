@@ -82,6 +82,26 @@ function ActionBuilder.Prototype.AddArgument(self: ActionBuilder, argumentName: 
 	return self
 end
 
+function ActionBuilder.Prototype.AddArguments(self: ActionBuilder, arguments: {
+	[string]: {
+		Type: ("string" | "number" | "boolean")?,
+		Description: string?,
+		Required: boolean?,
+		Default: any,
+	}
+}): ActionBuilder
+	for argumentName, argument in arguments do
+		self:AddArgument(argumentName, {
+			Type = argument.Type,
+			Description = argument.Description,
+			Required = argument.Required,
+			Default = argument.Default
+		})
+	end
+
+	return self
+end
+
 function ActionBuilder.Prototype.Build(self: ActionBuilder): Action
 	assert(self.Prototype.Name ~= nil, "Actions are required to have a 'Name', please call ':SetName'")
 	assert(Action.Instantiated[self.Prototype.Key] == nil, `Action '{self.Prototype.Name}' is a duplicate action!`)
