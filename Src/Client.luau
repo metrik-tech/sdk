@@ -11,6 +11,8 @@ local Error = require(script.Parent.Enums.Error)
 local ErrorFormats = require(script.Parent.Data.ErrorFormats)
 
 local FlagsController = require(script.Parent.Controllers.FlagsController)
+local BreadcrumbController = require(script.Parent.Controllers.BreadcrumbController)
+local ContextController = require(script.Parent.Controllers.ContextController)
 
 local ON_INIT_LIFECYCLE_NAME = "OnInit"
 local ON_START_LIFECYCLE_NAME = "OnStart"
@@ -34,6 +36,40 @@ function MetrikSDK.Private.FromError(_: MetrikPrivateAPI, errorEnum: string, ...
 	return string.format(ErrorFormats[errorEnum], ...)
 end
 
+function MetrikSDK.Private.AwaitUntilReady(self: MetrikPrivateAPI)
+	repeat task.wait() until self.IsInitialized
+end
+
+--[=[
+	...
+
+	@method CreateBreadcrumb
+	@within MetrikSDK.Client
+
+	@return ()
+]=]
+--
+function MetrikSDK.Public.CreateBreadcrumb(self: MetrikPublicAPI, message: string)
+	self.Private:AwaitUntilReady()
+
+	BreadcrumbController:CreateBreadcrumbFor(debug.info(2, "s"), message)
+end
+
+--[=[
+	...
+
+	@method SetContext
+	@within MetrikSDK.Client
+
+	@return ()
+]=]
+--
+function MetrikSDK.Public.SetContext(self: MetrikPublicAPI, context: { [string]: any })
+	self.Private:AwaitUntilReady()
+
+	ContextController:CreateContextFor(debug.info(2, "s"), context)
+end
+
 --[=[
 	...
 
@@ -44,6 +80,8 @@ end
 ]=]
 --
 function MetrikSDK.Public.GetFlag(self: MetrikPublicAPI, flagName: string)
+	self.Private:AwaitUntilReady()
+
 	return FlagsController:EvaluateFlag(flagName)
 end
 
@@ -81,6 +119,8 @@ function MetrikSDK.Public.InitializeAsync(self: MetrikPublicAPI)
 		table.sort(metrikControllers, function(serviceA, serviceB)
 			return (serviceA.Priority or 0) > (serviceB.Priority or 0)
 		end)
+		
+		repeat task.wait() until script.Parent:GetAttribute("INIT_COMPLETE")
 
 		Runtime:CallMethodOn(metrikControllers, ON_INIT_LIFECYCLE_NAME)
 		Runtime:CallMethodOn(metrikControllers, ON_START_LIFECYCLE_NAME)

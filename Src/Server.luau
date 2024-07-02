@@ -87,7 +87,7 @@ end
 ]=]
 --
 function MetrikSDK.Public.CreateBreadcrumb(self: MetrikPublicAPI, message: string)
-	BreadcrumbService:CreateBreadcrumbFor(self.Private:GetCallingScript(), message)
+	BreadcrumbService:CreateBreadcrumbFor(nil, self.Private:GetCallingScript(), message)
 end
 
 --[=[
@@ -100,7 +100,7 @@ end
 ]=]
 --
 function MetrikSDK.Public.SetContext(self: MetrikPublicAPI, context: { [string]: any })
-	ContextService:CreateContextFor(self.Private:GetCallingScript(), context)
+	ContextService:CreateContextFor(nil, self.Private:GetCallingScript(), context)
 end
 
 --[=[
@@ -187,6 +187,8 @@ function MetrikSDK.Public.InitializeAsync(self: MetrikPublicAPI, settings: {
 		if not success then
 			return reject(response)
 		end
+
+		script.Parent:SetAttribute("INIT_COMPLETE", true)
 
 		self.Private.IsInitialized = true
 

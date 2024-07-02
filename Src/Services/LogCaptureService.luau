@@ -16,6 +16,7 @@ local GetScriptFromFullName = require(script.Parent.Parent.Util.GetScriptFromFul
 local Network = require(script.Parent.Parent.Network.Server)
 
 local MESSAGE_REPORTER_DELAY = 60
+local CLIENT_REPORTER_KINDNESS = 5
 local COMMON_UUID_PATTERNS = table.freeze({
 	"rbxassetid://%d+",
 	"https://www.roblox.com/asset/?id=%d+",
@@ -27,6 +28,7 @@ LogCaptureService.Priority = 0
 LogCaptureService.Reporter = Console.new(`{script.Name}`)
 
 LogCaptureService.MessageQueue = {}
+LogCaptureService.PlayerQueues = {}
 
 LogCaptureService.RegexFilters = {}
 LogCaptureService.RegexFilters.Custom = {}
@@ -96,9 +98,9 @@ function LogCaptureService.OmitUUIDsFromSource(self: LogCaptureService, source: 
 	return source
 end
 
-function LogCaptureService.OnMessageError(self: LogCaptureService, source: string, trace: string)
+function LogCaptureService.OnMessageError(self: LogCaptureService, source: string, trace: string, player: Player?)
 	local filePath, message = string.match(source, "(%S+):%d+: (.+)")
-	local scriptObject = GetScriptFromFullName(filePath)
+	local success, scriptObject = pcall(GetScriptFromFullName, filePath)
 
 	if not self:SourcePassesRegexFilters(source) then
 		self.Reporter:Warn(`Dropping error '{message}' from '{filePath}' - message failed regex filters`)
@@ -106,14 +108,14 @@ function LogCaptureService.OnMessageError(self: LogCaptureService, source: strin
 		return
 	end
 
-	if not scriptObject then
+	if not success or not scriptObject then
 		self.Reporter:Warn(`Dropping error '{message}' from '{filePath}' - script not found`)
 
 		return
 	end
 
-	local breadcrumbs = BreadcrumbService:GetBreadcrumbsFor(filePath)
-	local context = ContextService:GetContextFor(filePath)
+	local breadcrumbs = BreadcrumbService:GetBreadcrumbsFor(player, filePath)
+	local context = ContextService:GetContextFor(player, filePath)
 
 	local ancestors = {}
 	local parent = scriptObject
@@ -127,6 +129,18 @@ function LogCaptureService.OnMessageError(self: LogCaptureService, source: strin
 		parent = parent.Parent
 	end
 
+	warn("ERROR:", {
+		["message"] = self:OmitUUIDsFromSource(message),
+		["placeVersion"] = game.PlaceVersion,
+		["serverId"] = ApiService.JobId,
+		["script"] = filePath,
+		["trace"] = trace,
+		["ancestors"] = ancestors,
+		["breadcrumbs"] = breadcrumbs,
+		["context"] = HttpService:JSONEncode(context),
+		["environment"] = player and "CLIENT" or "SERVER",
+	})
+
 	table.insert(self.MessageQueue, {
 		["message"] = self:OmitUUIDsFromSource(message),
 		["placeVersion"] = game.PlaceVersion,
@@ -136,19 +150,36 @@ function LogCaptureService.OnMessageError(self: LogCaptureService, source: strin
 		["trace"] = trace,
 		["ancestors"] = ancestors,
 		["breadcrumbs"] = breadcrumbs,
+		["environment"] = player and "CLIENT" or "SERVER",
 		["context"] = context
 	})
 end
 
 function LogCaptureService.OnStart(self: LogCaptureService)
 	ScriptContext.Error:Connect(function(message: string, trace: string)
-		self:OnMessageError(message, trace)
+		self:OnMessageError(message, trace, nil)
 	end)
 
-	Network.LogError.SetCallback(function(_: Player, clientErrorQueue)
-		for _, clientErrorObject in clientErrorQueue do
-			self:OnMessageError(clientErrorObject.message, clientErrorObject.trace)
+	Network.LogError.SetCallback(function(player: Player, clientErrorQueue)
+		if self.PlayerQueues[player] then
+			self.Reporter:Warn(`Player '{player}' attempted to POST to the server log endpoint, but the server is not ready yet.`)
+			
+			return
 		end
+
+		self.PlayerQueues[player] = true
+
+		for _, clientErrorObject in clientErrorQueue do
+			self:OnMessageError(clientErrorObject.message, clientErrorObject.trace, player)
+		end
+
+		task.delay(MESSAGE_REPORTER_DELAY - CLIENT_REPORTER_KINDNESS, function()
+			self.PlayerQueues[player] = nil
+		end)
+	end)
+
+	Players.PlayerRemoving:Connect(function(player: Player)
+		self.PlayerQueues[player] = nil
 	end)
 
 	task.spawn(function()

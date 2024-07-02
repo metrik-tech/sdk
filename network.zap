@@ -1,5 +1,6 @@
-opt server_output = "Src/Network/Server.lua"
-opt client_output = "Src/Network/Client.lua"
+opt server_output = "Src/Network/Server.luau"
+opt client_output = "Src/Network/Client.luau"
+opt remote_scope = "METRIK_SDK"
 
 event LogError = {
 	from: Client,
@@ -8,10 +9,29 @@ event LogError = {
 	data: map {
 		[i16]: struct {
 			message: string,
-			trace: string,
-			filePath: string,
+			trace: string
 		}
 	},
+}
+
+event CreateContext = {
+	from: Client,
+	type: Reliable,
+	call: SingleSync,
+	data: struct {
+		contextJSON: string,
+		sourcePath: string,
+	}
+}
+
+event CreateBreadcrumb = {
+	from: Client,
+	type: Unreliable,
+	call: SingleSync,
+	data: struct {
+		message: string(..512),
+		sourcePath: string(..256),
+	}
 }
 
 event BroadcastTopbarMessage = {

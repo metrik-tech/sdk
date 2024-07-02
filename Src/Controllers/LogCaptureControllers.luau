@@ -16,19 +16,16 @@ LogCaptureControllers.MessageQueue = {}
 
 LogCaptureControllers.MessageQueueUpdated = Signal.new()
 
-function LogCaptureControllers.OnMessageError(self: LogCaptureControllers, message: string, trace: string, filePath: string)
+function LogCaptureControllers.OnMessageError(self: LogCaptureControllers, message: string, trace: string)
 	table.insert(self.MessageQueue, {
 		["message"] = message,
-		["script"] = filePath,
 		["trace"] = trace,
 	})
 end
 
 function LogCaptureControllers.OnStart(self: LogCaptureControllers)
-	ScriptContext.Error:Connect(function(message: string, trace: string, script: Instance)
-		local filePath = script and script:GetFullName() or "?"
-
-		self:OnMessageError(message, trace, filePath)
+	ScriptContext.Error:Connect(function(message: string, trace: string)
+		self:OnMessageError(message, trace)
 	end)
 
 	task.spawn(function()
