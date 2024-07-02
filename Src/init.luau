@@ -22,23 +22,23 @@ function MetrikSDK.InitializeAsync(self: MetrikSDK, settings: {
 	authenticationSecret: Secret
 }?)
 	if MetrikSDK.Server then
-		MetrikSDK.Server:InitializeAsync(settings)
+		return MetrikSDK.Server:InitializeAsync(settings)
 	else
-		MetrikSDK.Client:InitializeAsync()
+		return MetrikSDK.Client:InitializeAsync()
 	end
 end
 
 function MetrikSDK.GetFlag(self: MetrikSDK, flagName: string)
 	if MetrikSDK.Server then
-		MetrikSDK.Server:GetFlag(flagName)
+		return MetrikSDK.Server:GetFlag(flagName)
 	else
-		MetrikSDK.Client:GetFlag(flagName)
+		return MetrikSDK.Client:GetFlag(flagName)
 	end
 end
 
 function MetrikSDK.IsServerUpToDate(self: MetrikSDK)
 	if MetrikSDK.Server then
-		MetrikSDK.Server:IsServerUpToDate()
+		return MetrikSDK.Server:IsServerUpToDate()
 	else
 		error(`MetrikSDK.IsServerUpToDate() is not available on the client.`)
 	end
@@ -46,17 +46,17 @@ end
 
 function MetrikSDK.CreateBreadcrumb(self: MetrikSDK, message: string)
 	if MetrikSDK.Server then
-		MetrikSDK.Server:CreateBreadcrumb(message)
+		return MetrikSDK.Server:CreateBreadcrumb(message)
 	else
-		MetrikSDK.Client:CreateBreadcrumb(message)
+		return MetrikSDK.Client:CreateBreadcrumb(message)
 	end
 end
 
 function MetrikSDK.SetContext(self: MetrikSDK, context: { [string]: any })
 	if MetrikSDK.Server then
-		MetrikSDK.Server:SetContext(context)
+		return MetrikSDK.Server:SetContext(context)
 	else
-		MetrikSDK.Client:SetContext(context)
+		return MetrikSDK.Client:SetContext(context)
 	end
 end
 
