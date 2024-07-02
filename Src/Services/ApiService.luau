@@ -11,6 +11,8 @@ local ApiPaths = require(script.Parent.Parent.Data.ApiPaths)
 local ServerType = require(script.Parent.Parent.Enums.ServerType)
 
 local HEARTBEAT_UPDATE_SECONDS = 60 * 10 -- send server heartbeat every 10 minutes.
+local MAX_ATTEMPTS_AT_REQUESTS = 5
+local DELAY_BETWEEN_ATTEMPTS = 1.5
 
 local ApiService = {}
 
@@ -103,24 +105,40 @@ end
 
 function ApiService.RawRequestAsync(self: ApiService, data: { [any]: any })
 	return Promise.new(function(resolve, reject)
-		local success, response = pcall(HttpService.RequestAsync, HttpService, data)
+		local attempts = 0
+		local rejectionResponse
 
-		if not success or not response.Success then
-			local responseIsTable = typeof(response) == "table"
-			
-			return reject({
-				Success = responseIsTable and response.Success or success,
-				StatusCode = responseIsTable and response.StatusCode or 0,
-				StatusMessage = responseIsTable and response.StatusMessage or response,
-				Headers = responseIsTable and response.Headers or {},
-				Body = responseIsTable and response.Body or HttpService:JSONEncode({
-					code = 0,
-					message = response
-				})
-			})
+		while attempts < MAX_ATTEMPTS_AT_REQUESTS do
+			local success, response = pcall(HttpService.RequestAsync, HttpService, data)
+
+			if not success or not response.Success then
+				local responseIsTable = typeof(response) == "table"
+
+				rejectionResponse = {
+					Success = responseIsTable and response.Success or success,
+					StatusCode = responseIsTable and response.StatusCode or 0,
+					StatusMessage = responseIsTable and response.StatusMessage or response,
+					Headers = responseIsTable and response.Headers or {},
+					Body = responseIsTable and response.Body or HttpService:JSONEncode({
+						code = 0,
+						message = response
+					})
+				}
+
+				self.Reporter:Warn(`Attempt #{attempts} to make a request to '{data.Url}' failed;`)
+				self.Reporter:Warn(rejectionResponse)
+
+				task.wait(DELAY_BETWEEN_ATTEMPTS)
+
+				attempts += 1
+
+				continue
+			end
+	
+			return resolve(response)
 		end
 
-		return resolve(response)
+		return reject(rejectionResponse)
 	end)
 end
 
