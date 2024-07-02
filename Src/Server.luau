@@ -13,6 +13,8 @@ local Error = require(script.Parent.Enums.Error)
 local ErrorFormats = require(script.Parent.Data.ErrorFormats)
 local ApiPaths = require(script.Parent.Data.ApiPaths)
 
+local GetScriptFromFullName = require(script.Parent.Util.GetScriptFromFullName)
+
 local ActionBuilder = require(script.Parent.API.ActionBuilder)
 
 local ApiService = require(script.Parent.Services.ApiService)
@@ -51,6 +53,30 @@ function MetrikSDK.Private.FromError(_: MetrikPrivateAPI, errorEnum: string, ...
 	return string.format(ErrorFormats[errorEnum], ...)
 end
 
+function MetrikSDK.Private.GetCallingScript(_: MetrikPrivateAPI)
+	local level = 3
+	
+	while true do
+		local source = debug.info(level, "s")
+
+		if not source then
+			return nil
+		end
+
+		local instance = GetScriptFromFullName(source)
+
+		if not instance then
+			return nil
+		end
+
+		if instance:IsDescendantOf(script.Parent) or instance == script.Parent then
+			level += 1
+		else
+			return source
+		end
+	end
+end
+
 --[=[
 	...
 
@@ -61,7 +87,7 @@ end
 ]=]
 --
 function MetrikSDK.Public.CreateBreadcrumb(self: MetrikPublicAPI, message: string)
-	BreadcrumbService:CreateBreadcrumbFor(nil, debug.info(2, "s"), message)
+	BreadcrumbService:CreateBreadcrumbFor(nil, self.Private:GetCallingScript(), message)
 end
 
 --[=[
@@ -74,7 +100,7 @@ end
 ]=]
 --
 function MetrikSDK.Public.SetContext(self: MetrikPublicAPI, context: { [string]: any })
-	ContextService:CreateContextFor(nil, debug.info(2, "s"), context)
+	ContextService:CreateContextFor(nil, self.Private:GetCallingScript(), context)
 end
 
 --[=[

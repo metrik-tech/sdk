@@ -31,7 +31,7 @@ Action.Prototype = {}
 ActionBuilder.Public = {}
 ActionBuilder.Prototype = {}
 
-function Action.Prototype:CanRun(...: unknown) -- todo: figure out how the 'middleware' impl is going to look.
+function Action.Prototype:CanRun(...: unknown)
 	return true
 end
 
@@ -62,6 +62,18 @@ function ActionBuilder.Prototype.SetDescription(self: ActionBuilder, description
 	return self
 end
 
+function ActionBuilder.Prototype.OnRun(self: ActionBuilder, callback: (Action, ...any) -> ...any): ActionBuilder
+	self.Prototype.OnRun = callback
+
+	return self
+end
+
+function ActionBuilder.Prototype.CanRun(self: ActionBuilder, callback: (Action, ...any) -> ...any): ActionBuilder
+	self.Prototype.CanRun = callback
+
+	return self
+end
+
 function ActionBuilder.Prototype.AddArgument(self: ActionBuilder, argumentName: string, argumentMetadata: ArgumentMetadata?): ActionBuilder
 	local filteredArgumentName = string.lower(argumentName)
 	local argumentsDict = self.Prototype.Arguments :: { }
@@ -74,10 +86,31 @@ function ActionBuilder.Prototype.AddArgument(self: ActionBuilder, argumentName: 
 		Type = argumentMetadata and string.upper(argumentMetadata.Type or "STRING"),
 		Description = argumentMetadata and argumentMetadata.Description or "",
 		Required = argumentMetadata and argumentMetadata.Required or false,
-		Default = argumentMetadata and argumentMetadata.Default or ""
+		Default = argumentMetadata and argumentMetadata.Default or "",
+		IsArray = argumentMetadata and argumentMetadata.IsArray or false
 	}
 
 	table.insert(self.Prototype.ArgumentOrderedList, filteredArgumentName)
+
+	return self
+end
+
+function ActionBuilder.Prototype.AddArguments(self: ActionBuilder, arguments: {
+	[string]: {
+		Type: ("string" | "number" | "boolean")?,
+		Description: string?,
+		Required: boolean?,
+		Default: any,
+	}
+}): ActionBuilder
+	for argumentName, argument in arguments do
+		self:AddArgument(argumentName, {
+			Type = argument.Type,
+			Description = argument.Description,
+			Required = argument.Required,
+			Default = argument.Default
+		})
+	end
 
 	return self
 end
@@ -115,6 +148,7 @@ export type ArgumentMetadata = typeof(Action.Prototype) & {
 	Type: ("string" | "number" | "boolean")?,
 	Description: string?,
 	Required: boolean?,
+	IsArray: boolean?,
 	Default: any,
 }
 
