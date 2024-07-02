@@ -20,7 +20,7 @@ local ON_START_LIFECYCLE_NAME = "OnStart"
 --[=[
 	@class MetrikSDK.Client
 
-	The base class developers will be interacting with. *(TO-DO: add a descriptive class description!)*
+	The MetrikSDK.Client class is the main entry point for interacting with the Metrik Service on the Client.
 ]=]
 local MetrikSDK = {}
 
@@ -41,9 +41,10 @@ function MetrikSDK.Private.AwaitUntilReady(self: MetrikPrivateAPI)
 end
 
 --[=[
-	...
+	Defer to @MetrikSDK.CreateBreadcrumb
 
 	@method CreateBreadcrumb
+	@param message string
 	@within MetrikSDK.Client
 
 	@return ()
@@ -56,9 +57,10 @@ function MetrikSDK.Public.CreateBreadcrumb(self: MetrikPublicAPI, message: strin
 end
 
 --[=[
-	...
+	Defer to @MetrikSDK.SetContext
 
 	@method SetContext
+	@param context { [string]: any }
 	@within MetrikSDK.Client
 
 	@return ()
@@ -71,12 +73,13 @@ function MetrikSDK.Public.SetContext(self: MetrikPublicAPI, context: { [string]:
 end
 
 --[=[
-	...
+	Defer to @MetrikSDK.GetFlag
 
-	@method EvaluateFlag
-	@within MetrikSDK.Server
+	@method GetFlag
+	@param context { [string]: any }
+	@within MetrikSDK.Client
 
-	@return ()
+	@return boolean
 ]=]
 --
 function MetrikSDK.Public.GetFlag(self: MetrikPublicAPI, flagName: string)
@@ -86,16 +89,10 @@ function MetrikSDK.Public.GetFlag(self: MetrikPublicAPI, flagName: string)
 end
 
 --[=[
-	Start the Metrik SDK, once this function has been called, internal Metrik Services and Controllers should come online and start to respond and
-		handle Metrik backend calls made to the current Roblox server.
-
-	:::warning
-		Please ensure that any pre-init variables are set before calling this function, otherwise Metrik will have issues attempting to authenticate
-		the current SDK!
-	:::
+	Defer to @MetrikSDK.InitializeAsync
 
 	@method InitializeAsync
-	@within MetrikSDK
+	@within MetrikSDK.Client
 
 	@return Promise<()>
 ]=]

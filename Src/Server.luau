@@ -28,7 +28,7 @@ local ON_START_LIFECYCLE_NAME = "OnStart"
 --[=[
 	@class MetrikSDK.Server
 
-	The base class developers will be interacting with. *(TO-DO: add a descriptive class description!)*
+	The MetrikSDK.Server class is the main entry point for interacting with the Metrik Service on the Server.
 ]=]
 local MetrikSDK = {}
 
@@ -46,7 +46,12 @@ MetrikSDK.Private.ProjectId = ""
 	@prop ActionBuilder ActionBuilder
 	@within MetrikSDK.Server
 ]=]
---
+
+--[=[
+	@prop ActionBuilder ActionBuilder
+	@within MetrikSDK.Server
+]=]
+
 MetrikSDK.Public.ActionBuilder = ActionBuilder
 
 function MetrikSDK.Private.FromError(_: MetrikPrivateAPI, errorEnum: string, ...: string)
@@ -78,38 +83,39 @@ function MetrikSDK.Private.GetCallingScript(_: MetrikPrivateAPI)
 end
 
 --[=[
-	...
+	Defer to @MetrikSDK.CreateBreadcrumb
 
 	@method CreateBreadcrumb
+	@param message string
 	@within MetrikSDK.Server
 
 	@return ()
 ]=]
---
 function MetrikSDK.Public.CreateBreadcrumb(self: MetrikPublicAPI, message: string)
 	BreadcrumbService:CreateBreadcrumbFor(nil, self.Private:GetCallingScript(), message)
 end
 
 --[=[
-	...
+	Defer to @MetrikSDK.SetContext
 
 	@method SetContext
+	@param context { [string]: any }
 	@within MetrikSDK.Server
 
 	@return ()
 ]=]
---
 function MetrikSDK.Public.SetContext(self: MetrikPublicAPI, context: { [string]: any })
 	ContextService:CreateContextFor(nil, self.Private:GetCallingScript(), context)
 end
 
 --[=[
+	Defer to @MetrikSDK.IsServerUpToDate
+
 	@method IsServerUpToDate
 	@within MetrikSDK.Server
 
-	@return ()
+	@return boolean
 ]=]
---
 function MetrikSDK.Public.IsServerUpToDate(self: MetrikPublicAPI)
 	local success, response = ApiService:GetAsync(string.format(ApiPaths.GetLatestPlaceVersion, ApiService.ProjectId), { }):await()
 
@@ -125,34 +131,27 @@ function MetrikSDK.Public.IsServerUpToDate(self: MetrikPublicAPI)
 end
 
 --[=[
-	...
+	Defer to @MetrikSDK.GetFlag
 
-	@method EvaluateFlag
+	@method GetFlag
+	@param flagName string
 	@within MetrikSDK.Server
 
-	@return ()
+	@return boolean
 ]=]
---
 function MetrikSDK.Public.GetFlag(self: MetrikPublicAPI, flagName: string)
 	return FlagsService:EvaluateFlag(flagName)
 end
 
 --[=[
-	Start the Metrik SDK, once this function has been called, internal Metrik Services and Controllers should come online and start to respond and
-		handle Metrik backend calls made to the current Roblox server.
-
-	:::warning
-		Please ensure that any pre-init variables are set before calling this function, otherwise Metrik will have issues attempting to authenticate
-		the current SDK!
-	:::
+	Defer to @MetrikSDK.InitializeAsync
 
 	@method InitializeAsync
 	@param settings { projectId: string, authenticationSecret: Secret }
-	@within MetrikSDK.Server
+	@within MetrikSDK.Client
 
 	@return Promise<()>
 ]=]
---
 function MetrikSDK.Public.InitializeAsync(self: MetrikPublicAPI, settings: {
 	projectId: string,
 	authenticationSecret: Secret
