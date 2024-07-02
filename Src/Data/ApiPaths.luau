@@ -14,6 +14,8 @@ return table.freeze({
 	ReturnAction = "/projects/%s/actions/return",
 	ClaimAction = "/projects/%s/actions/claim",
 
+	GetUserInformation = "/projects/%s/proxy/users/%s",
+
 	GetModerationStatus = "/projects/%s/moderation/status",
 
 	GetAllFlags = "/projects/%s/flags/get",

@@ -15,6 +15,7 @@ local ApiPaths = require(script.Parent.Parent.Data.ApiPaths)
 local ArgumentType = require(script.Parent.Parent.Enums.ArgumentType)
 local ActionBehaviour = require(script.Parent.Parent.Enums.ActionBehaviour)
 
+local UserService = require(script.Parent.UserService)
 local ApiService = require(script.Parent.ApiService)
 
 local DELAY_BEFORE_MARKING_ACTION_AS_PENDING = 5
@@ -50,6 +51,8 @@ function ActionService.ParseArgument(self: ActionService, argumentData: any, ser
 		return serverArgumentData.value
 	elseif argumentData.Type == ArgumentType.Player then
 		return Players:GetPlayerByUserId(serverArgumentData.value)
+	elseif argumentData.Type == ArgumentType.User then
+		return UserService:GetUserAsync(serverArgumentData.value):expect()
 	end
 
 	return
