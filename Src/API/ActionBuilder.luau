@@ -74,7 +74,8 @@ function ActionBuilder.Prototype.AddArgument(self: ActionBuilder, argumentName: 
 		Type = argumentMetadata and string.upper(argumentMetadata.Type or "STRING"),
 		Description = argumentMetadata and argumentMetadata.Description or "",
 		Required = argumentMetadata and argumentMetadata.Required or false,
-		Default = argumentMetadata and argumentMetadata.Default or ""
+		Default = argumentMetadata and argumentMetadata.Default or "",
+		IsArray = argumentMetadata and argumentMetadata.IsArray or false
 	}
 
 	table.insert(self.Prototype.ArgumentOrderedList, filteredArgumentName)
@@ -115,6 +116,7 @@ export type ArgumentMetadata = typeof(Action.Prototype) & {
 	Type: ("string" | "number" | "boolean")?,
 	Description: string?,
 	Required: boolean?,
+	IsArray: boolean?,
 	Default: any,
 }
 

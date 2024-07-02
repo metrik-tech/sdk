@@ -26,6 +26,35 @@ ActionService.Reporter = Console.new(`{script.Name}`)
 
 ActionService.Actions = {}
 
+function ActionService.ParseArgument(self: ActionService, argumentData: any, serverArgumentData: any)
+	if serverArgumentData.array then
+		local arrayObject = {}
+		local jsonDecoded = HttpService:JSONDecode(serverArgumentData.value)
+
+		for _, value in jsonDecoded do
+			-- fixme: this is not nice, look into cleaning this code
+
+			table.insert(arrayObject, self:ParseArgument({
+				Type = argumentData.Type
+			}, {
+				value = value
+			}))
+		end
+	end
+	
+	if
+		argumentData.Type == ArgumentType.String
+		or argumentData.Type == ArgumentType.Number
+		or argumentData.Type == ArgumentType.Boolean
+	then
+		return serverArgumentData.value
+	elseif argumentData.Type == ArgumentType.Player then
+		return Players:GetPlayerByUserId(serverArgumentData.value)
+	end
+
+	return
+end
+
 function ActionService.RegisterActionAsync(self: ActionService, action: any)
 	local requestBody = {}
 
@@ -44,6 +73,7 @@ function ActionService.RegisterActionAsync(self: ActionService, action: any)
 		argumentBody.description = argumentObject.Description
 		argumentBody.required = argumentObject.Required
 		argumentBody.default = argumentObject.Default
+		argumentBody.array = argumentObject.IsArray
 		argumentBody.type = string.upper(argumentObject.Type)
 
 		table.insert(requestBody.arguments, argumentBody)
@@ -135,15 +165,13 @@ function ActionService.OnStart(self: ActionService)
 						return
 					end
 
-					if
-						argumentData.Type == ArgumentType.String
-						or argumentData.Type == ArgumentType.Number
-						or argumentData.Type == ArgumentType.Boolean
-					then
-						argumentValue = serverArgumentData.value
-					elseif argumentData.Type == ArgumentType.Player then
-						argumentValue = Players:GetPlayerByUserId(serverArgumentData.value)
+					if serverArgumentData.array ~= argumentData.IsArray then
+						self.Reporter:Warn(`Argument '{argumentName}' has invalid types! Dropping Action request!`)
+					
+						return
 					end
+
+					argumentValue = self:ParseArgument(argumentData, serverArgumentData)
 
 					table.insert(sanitizedArguments, argumentValue)
 				else
