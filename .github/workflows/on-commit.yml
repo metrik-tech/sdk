@@ -10,6 +10,8 @@ jobs:
       - uses: ok-nick/setup-aftman@v0.4.2
       - name: Build artifact dependencies
         run: wally install
+      - name: Build artifact networking
+        run: zap network.zap
       - name: Build artifact
         run: rojo build default.project.json -o Artifact.rbxm
       - name: Deploy artifact
