@@ -31,7 +31,7 @@ Action.Prototype = {}
 ActionBuilder.Public = {}
 ActionBuilder.Prototype = {}
 
-function Action.Prototype:CanRun(...: unknown) -- todo: figure out how the 'middleware' impl is going to look.
+function Action.Prototype:CanRun(...: unknown)
 	return true
 end
 
