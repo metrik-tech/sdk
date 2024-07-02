@@ -62,6 +62,18 @@ function ActionBuilder.Prototype.SetDescription(self: ActionBuilder, description
 	return self
 end
 
+function ActionBuilder.Prototype.OnRun(self: ActionBuilder, callback: (Action, ...any) -> ...any): ActionBuilder
+	self.Prototype.OnRun = callback
+
+	return self
+end
+
+function ActionBuilder.Prototype.CanRun(self: ActionBuilder, callback: (Action, ...any) -> ...any): ActionBuilder
+	self.Prototype.CanRun = callback
+
+	return self
+end
+
 function ActionBuilder.Prototype.AddArgument(self: ActionBuilder, argumentName: string, argumentMetadata: ArgumentMetadata?): ActionBuilder
 	local filteredArgumentName = string.lower(argumentName)
 	local argumentsDict = self.Prototype.Arguments :: { }
