@@ -96,6 +96,8 @@ function ApiService._QueryServerStartAsync(self: ApiService)
 				self:PostAsync(string.format(ApiPaths.ServerEnd, self.ProjectId), {
 					serverId = self.JobId,
 				})
+
+				task.wait(3)
 			end)
 		end)
 end
