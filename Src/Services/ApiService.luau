@@ -61,9 +61,7 @@ function ApiService._QueryServerStartAsync(self: ApiService)
 	local serverType = ServerType.Public
 
 	if RunService:IsStudio() then
-		-- todo, backend doesn't support STUDIO
-
-		serverType = ServerType.Reserved
+		serverType = ServerType.Studio
 	elseif game.VIPServerOwnerId ~= 0 then
 		serverType = ServerType.Private
 	elseif game.VIPServerId ~= "" then
@@ -75,6 +73,7 @@ function ApiService._QueryServerStartAsync(self: ApiService)
 	return self:PostAsync(string.format(ApiPaths.ServerStart, self.ProjectId), {
 		["serverId"] = self.JobId,
 		["placeVersion"] = game.PlaceVersion,
+		["placeId"] = game.PlaceId,
 		["type"] = string.upper(serverType),
 		["maxPlayers"] = Players.MaxPlayers,
 		["region"] = self.Trace.loc
