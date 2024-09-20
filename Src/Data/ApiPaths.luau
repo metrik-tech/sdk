@@ -1,6 +1,6 @@
 return table.freeze({
 	TraceUrl = "metrik.app/cdn-cgi/trace",
-	BaseUrl = "api.metrik.app/api/v1",
+	BaseUrl = "api-prod.metrik.app/api/v1",
 
 	ServerStart = "/projects/%s/server/start",
 	ServerEnd = "/projects/%s/server/stop",
